@@ -1,4 +1,5 @@
-[![Build status](https://ci.appveyor.com/api/projects/status/fkguas3fm87takto?svg=true)](https://ci.appveyor.com/project/anirudhSK/druzhba-j5ou7)
+[![Build status](https://ci.appveyor.com/api/projects/status/8bmj5q0xotaa9xe8/branch/master?svg=true)](https://ci.appveyor.com/project/mdw362/druzhba-public/branch/master)
+
 
 
 Programmable switch pipeline simulator.
