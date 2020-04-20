@@ -1,0 +1,493 @@
+
+/* Test helper functions */
+fn create_random_phvs (ticks : i32,
+                   num_packets : i32,
+                   pipeline_width : i32,
+                   num_state_vars : i32,
+                   num_stateful_alus : i32) -> Vec <Phv <i32> >
+{{
+  let mut input_phvs : Vec <Phv <i32> > = Vec::new();
+    // Initializes packet with all of the input fields
+    // along with a random value
+  for _i in 0..ticks {{
+    let mut packet : Phv<i32> = Phv::new();
+    for _j in 0..num_packets{{
+        packet.add_container_to_phv(PhvContainer {{
+            field_value : rand::thread_rng().gen_range(0,100),
+        }}); 
+    }}
+    for _j in num_packets..pipeline_width {{
+      packet.add_container_to_phv(PhvContainer {{
+          field_value : 0,
+      }}); 
+
+    }}
+    let mut state_vec : Vec <Vec <i32>>  = Vec::new();
+    for _i in 0..num_stateful_alus {{
+      let mut tmp_state_vec : Vec <i32> = Vec::new();
+      for _j in 0..num_state_vars {{
+        tmp_state_vec.push (rand::thread_rng().gen_range(0,100));
+      }}
+      state_vec.push (tmp_state_vec);
+    }}
+    packet.set_state (state_vec);
+    input_phvs.push (packet.clone());
+  }}
+  input_phvs
+
+}}
+// Initializes hole config HashMap and initializes pipeline.
+// Runs input phvs through pipeline and returns the resulting
+// output phvs
+fn extract_hole_cfgs (hole_cfgs_file : String) -> HashMap <String, i32 > {{
+  let mut hole_cfgs_map : HashMap <String, i32> = HashMap::new();
+  let hole_cfgs_file_contents : String = fs::read_to_string(hole_cfgs_file).expect ("Error: Hole configs file could not be found");
+  let hole_cfgs_file_vec : Vec <String> = hole_cfgs_file_contents
+                                          .split ("\n")
+                                          .map (|s| s.to_string())
+                                          .collect();
+
+  for hole_var in hole_cfgs_file_vec {{
+      let hole_entry : Vec <&str> = hole_var
+                                    .split("=")
+                                    .map(|s| s.trim())
+                                    .collect();
+      if hole_entry.len() < 2 {{
+        continue;
+      }}
+      hole_cfgs_map.insert (hole_entry[0].to_string(), 
+                            hole_entry[1].to_string().parse::<i32>()
+                                                     .expect ("Error: hole value set to non-integer value"));
+  }}
+  hole_cfgs_map
+}}
+
+fn run_pipeline (input_phvs : Vec <Phv <i32> >,
+                 mut pipeline : Pipeline,
+                 ticks : i32) -> (Vec <Phv <i32>>, Vec<Phv <i32>>) {{
+  let mut result_updated_input_phvs : Vec <Phv<i32> > = Vec::new();
+  let mut result_output_phvs : Vec <Phv<i32> > = Vec::new();
+  for t in 0..ticks {{
+    let updated_input_output_phvs : (Phv<i32>, Phv<i32>) = 
+        pipeline.tick (input_phvs[t as usize].clone());
+
+    if !updated_input_output_phvs.1.is_bubble() {{
+      result_output_phvs.push(updated_input_output_phvs.1);
+      result_updated_input_phvs.push(updated_input_output_phvs.0);
+    }}
+  }}
+  (result_updated_input_phvs, result_output_phvs)
+}}
+
+
+// Maintains the same assertions as the specification
+// for the simple.sk spec in Chipmunk
+fn test_simple (input_phvs : Vec <Phv <i32> >,
+                output_phvs : Vec <Phv <i32> >) {{
+
+  for i in 0..output_phvs.len() {{
+    assert!(output_phvs[i][0].get_value() ==
+            input_phvs[i].get_state()[0][0] + 1);
+
+  }}
+}}
+fn test_marple_new_flow_old (input_phvs : Vec <Phv <i32> >,
+                         output_phvs : Vec <Phv <i32> >) {{
+
+  for i in 0..output_phvs.len() {{
+    if input_phvs[i].get_state()[0][0] == 0 {{
+      assert! (output_phvs[i][0].get_value()==1);
+      assert! (output_phvs[i].get_state()[0][0]==1);
+    }}
+  }}
+}}
+fn test_marple_tcp_nmo_old (input_phvs : Vec <Phv <i32> >,
+                        output_phvs : Vec <Phv <i32> >) {{
+
+  for i in 0..output_phvs.len() {{
+    if input_phvs[i][0].get_value() < input_phvs[i].get_state()[1][0] {{
+      assert! (output_phvs[i].get_state()[0][0] == input_phvs[i].get_state()[0][0]+1);
+    }}
+    else{{
+      assert! (output_phvs[i].get_state()[1][0] == input_phvs[i][0].get_value());
+    }}
+  }}
+}}
+
+fn test_blue_increase_old (input_phvs : Vec <Phv <i32> >,
+                           output_phvs : Vec <Phv <i32> >) {{
+
+  for i in 0..output_phvs.len() {{
+    assert!(output_phvs[i][1].get_value() == input_phvs[i][0].get_value() - 1);
+    if output_phvs[i][1].get_value() > input_phvs[i].get_state()[1][0]{{
+      assert!(output_phvs[i].get_state()[0][0] == input_phvs[i].get_state()[0][0]+1);
+      assert!(output_phvs[i].get_state()[1][0] == input_phvs[i][0].get_value());
+    }}
+  }}
+}}
+
+fn test_learn_filter_old (input_phvs : Vec <Phv <i32> >,
+                      output_phvs : Vec <Phv <i32> >) {{
+  for i in 0..output_phvs.len() {{
+    assert!(output_phvs[i][0].get_value() == input_phvs[i][0].get_value());
+    assert!(output_phvs[i].get_state()[0][0] == 1);
+    assert!(output_phvs[i].get_state()[1][0] == 1);
+    assert!(output_phvs[i].get_state()[2][0] == 1);
+  }}
+}}
+fn test_sampling_old  (input_phvs : Vec <Phv <i32> >,
+                   output_phvs : Vec <Phv <i32> >) {{
+  for i in 0..output_phvs.len() {{
+    if input_phvs[i].get_state()[0][0] == 3 - 1 {{
+      assert!(output_phvs[i][0].get_value() == 1);
+      assert!(output_phvs[i].get_state()[0][0] == 0);
+    }}
+    else {{
+      assert!(output_phvs[i][0].get_value() == 0);
+      assert!(output_phvs[i].get_state()[0][0] == input_phvs[i].get_state()[0][0]+1);
+    }}
+  }}
+}}
+fn test_sampling (input_phvs : Vec <Phv <i32> >,
+                  output_phvs: Vec < Phv <i32> >){{
+
+  for i in 0..output_phvs.len() {{
+    let mut expected_phv : Phv <i32> = input_phvs[i].clone();
+    let mut state = expected_phv.get_state();
+      if state[0][0] != 29 {{
+        expected_phv[0].field_value = 0;
+        state[0][0] = state[0][0] + 1;
+      }}
+      else {{
+        if state[0][0] == 29 {{
+          expected_phv[0].field_value = 1;
+          state[0][0] = 0;
+        }}
+      }}
+    expected_phv.set_state (state);
+    assert!(expected_phv[0].field_value == output_phvs[i][0].field_value);
+    assert!(expected_phv.get_state()[0][0] == output_phvs[i].get_state()[0][0]);
+  }}
+
+}}
+fn test_rcp  (input_phvs : Vec <Phv <i32> >,
+              output_phvs : Vec <Phv <i32> >) {{
+  for i in 0..output_phvs.len() {{
+   
+    if input_phvs[i][1].get_value() < 2 {{
+      assert!(output_phvs[i].get_state()[1][0] == input_phvs[i].get_state()[1][0] + input_phvs[i][1].get_value());
+      assert!(output_phvs[i].get_state()[2][0] == input_phvs[i].get_state()[2][0]+1);
+    }}
+    else {{
+      assert!(output_phvs[i].get_state()[0][0] == input_phvs[i][0].get_value() + input_phvs[i].get_state()[0][0]);
+    }}
+  }}
+}}
+
+fn test_times_two  (input_phvs : Vec <Phv <i32> >,
+                    output_phvs : Vec <Phv <i32> >) {{
+
+  for i in 0..output_phvs.len() {{
+    if input_phvs[i][0].get_value() * 2 == input_phvs[i][1].get_value(){{
+      assert!(output_phvs[i].get_state()[0][0]==1);
+    }}
+    else {{
+      assert!(output_phvs[i].get_state()[0][0]==0);
+    }}
+  }}
+}}
+
+fn test_test  (input_phvs : Vec <Phv <i32> >,
+               output_phvs : Vec <Phv <i32> >) {{
+
+  for i in 0..output_phvs.len() {{
+    assert!(output_phvs[i][1].get_value() == input_phvs[i][0].get_value() + 1 + input_phvs[i][1].get_value());
+
+    assert!(output_phvs[i].get_state()[0][0] == input_phvs[i].get_state()[0][0]+1);
+
+    assert!(output_phvs[i].get_state()[1][0] == output_phvs[i].get_state()[0][0] + input_phvs[i].get_state()[1][0]);
+
+    assert!(output_phvs[i][0].get_value() == output_phvs[i].get_state()[0][0] + output_phvs[i][1].get_value());
+
+    assert!(output_phvs[i][2].get_value() == output_phvs[i].get_state()[0][0] + output_phvs[i].get_state()[1][0]);
+  }}
+
+}}
+
+fn test_snap_heavy_hitter_old  (input_phvs : Vec <Phv <i32> >,
+                            output_phvs : Vec <Phv <i32> >) {{
+
+  for i in 0..output_phvs.len() {{
+    
+    assert!(input_phvs[i][0].get_value() == output_phvs[i][0].get_value());
+    if input_phvs[i].get_state()[0][0] == 0 {{
+      assert!(output_phvs[i].get_state()[0][1] == input_phvs[i].get_state()[0][1]+1);
+      if output_phvs[i].get_state()[0][1] == 1000 {{
+        assert!(output_phvs[i].get_state()[0][0]==1);
+      }}
+    }}
+  }}
+
+}}
+fn test_snap_heavy_hitter  (input_phvs : Vec <Phv <i32> >,
+                            output_phvs : Vec <Phv <i32> >) {{
+
+  for i in 0..output_phvs.len() {{
+    let mut expected_phv = input_phvs[i].clone();
+    let mut state = input_phvs[i].get_state();
+    if state[0][1] == 0 {{
+      state[0][0] += 1;
+      if state[0][0] == 1000 {{
+        state[0][1] = 1;
+      }}
+    }}
+    expected_phv.set_state (state);
+    assert!(expected_phv.get_state()[0][0] == output_phvs[i].get_state()[0][0]);
+    assert!(expected_phv.get_state()[0][1] == output_phvs[i].get_state()[0][1]);
+  }}   
+}}
+fn test_sampling_revised  (input_phvs : Vec <Phv <i32> >,
+                           output_phvs : Vec <Phv <i32> >) {{
+
+  for i in 0..output_phvs.len() {{
+    if input_phvs[i].get_state()[0][0] == 30 - 1 {{ 
+      assert!(output_phvs[i].get_state()[0][0] == 0);
+    }}
+    else {{
+      if input_phvs[i].get_state()[0][0] == 8 {{
+
+        assert!(output_phvs[i].get_state()[0][0]==2);
+      }}
+      else {{
+        assert!(output_phvs[i].get_state()[0][0]==1);
+      }}
+   
+    }}
+    assert!(output_phvs[i][0].get_value() == 1 );
+  }}
+}}
+
+fn test_conga (input_phvs : Vec <Phv <i32>>,
+               output_phvs : Vec <Phv <i32> >) {{
+  for i in 0..output_phvs.len() {{
+    let mut expected_phv : Phv <i32> = input_phvs[i].clone();
+    let mut state = expected_phv.get_state();
+    if expected_phv[0].field_value < 0 {{
+      expected_phv[1].field_value = 0;
+    }}
+    else {{
+      expected_phv[1].field_value = expected_phv[0].field_value;
+    }}
+
+    if expected_phv[0].field_value < 0 {{
+      expected_phv[2].field_value = 0;
+    }}
+    else {{
+      expected_phv[2].field_value = expected_phv[0].field_value;
+    }}   
+
+    if expected_phv[3].field_value >= state[0][0] {{
+      if expected_phv[4].field_value == state[0][1] {{
+        state[0][0] = expected_phv[3].field_value;
+      }}
+    }}
+    else {{
+      if expected_phv[3].field_value < state[0][0] {{
+        state[0][0] = expected_phv[3].field_value;
+        state[0][1] = expected_phv[4].field_value;
+      }}
+    }}
+    expected_phv.set_state(state);
+    assert!(expected_phv[1].field_value == output_phvs[i][1].field_value);
+    assert!(expected_phv[2].field_value == output_phvs[i][2].field_value);
+    assert!(expected_phv.get_state()[0][0] == output_phvs[i].get_state()[0][0]);
+
+    assert!(expected_phv.get_state()[0][1] == output_phvs[i].get_state()[0][1]);
+  }}
+}}
+fn test_flowlets (input_phvs : Vec <Phv <i32>>,
+                  output_phvs : Vec <Phv <i32> >) {{
+  for i in 0..output_phvs.len() {{
+    let mut expected : Phv <i32> = input_phvs[i].clone();
+    let mut state = expected.get_state();
+    if expected[1].field_value - state[1][0] > 5 {{
+      state[0][0] = expected[0].field_value;
+    }}
+    state[1][0] = expected[1].field_value;
+    expected[2].field_value = state[0][0];
+  
+    expected.set_state(state);
+    assert!(expected[2].field_value == output_phvs[i][2].field_value);
+
+    assert!(expected.get_state()[0][0] == output_phvs[i].get_state()[0][0]);
+    assert!(expected.get_state()[1][0] == output_phvs[i].get_state()[1][0]);
+
+  }}
+}}
+fn test_spam_detection (input_phvs : Vec <Phv <i32>>,
+                        output_phvs : Vec <Phv <i32> >) {{
+  for i in 0..output_phvs.len() {{
+    let mut expected : Phv <i32> = input_phvs[i].clone();
+    let mut state = expected.get_state();
+    if state[0][0] == 1 {{
+      state[0][0] = 2;
+      state[0][1] = 0;
+    }}
+    if state[0][0] == 2 {{
+      state[0][1] += 1;
+      if state[0][1] == 1000 {{
+        state[0][0] = 3;
+      }}
+    }}
+    expected.set_state(state);
+    assert!(expected.get_state()[0][0] == output_phvs[i].get_state()[0][0]);
+    assert!(expected.get_state()[0][1] == output_phvs[i].get_state()[0][1]);
+
+  }}
+}}
+fn test_stateful_fw (input_phvs : Vec <Phv <i32>>,
+                     output_phvs : Vec <Phv <i32> >) {{
+  for i in 0..output_phvs.len() {{
+    let mut expected : Phv <i32> = input_phvs[i].clone();
+    let mut state = expected.get_state();
+    expected[2].field_value = expected[1].field_value + expected[0].field_value;
+    if expected[1].field_value != 102 && expected[0].field_value == 102 {{
+      if state[0][0] == 0 {{
+        expected[3].field_value = 1;
+      }}
+      else {{ 
+        expected[3].field_value = 0;
+      }}
+    }}
+    else {{
+      if expected[1].field_value == 102 {{
+        state[0][0] = 1;
+      }}
+    }}
+    expected.set_state(state);
+    assert!(expected[2].field_value == output_phvs[i][2].field_value);
+    assert!(expected[3].field_value == output_phvs[i][3].field_value);
+    assert!(expected.get_state()[0][0] == output_phvs[i].get_state()[0][0]);
+  }}
+}}
+fn test_blue_increase (input_phvs : Vec <Phv <i32>>,
+                       output_phvs : Vec <Phv <i32> >) {{
+  for i in 0..output_phvs.len() {{
+    let mut expected : Phv <i32> = input_phvs[i].clone();
+    let mut state = expected.get_state();
+    expected[1].field_value = expected[0].field_value - 10;
+    if expected[1].field_value > state[1][0] {{
+      state[0][0] += 1;
+      state[1][0] = expected[0].field_value;
+    }}
+    
+    expected.set_state(state);
+    assert!(expected[1].field_value == output_phvs[i][1].field_value);
+
+    assert!(expected.get_state()[0][0] == output_phvs[i].get_state()[0][0]);
+
+    assert!(expected.get_state()[1][0] == output_phvs[i].get_state()[1][0]);
+  }}
+}}
+
+fn test_blue_decrease (input_phvs : Vec <Phv <i32>>,
+                       output_phvs : Vec <Phv <i32> >) {{
+  for i in 0..output_phvs.len() {{
+    let mut expected : Phv <i32> = input_phvs[i].clone();
+    let mut state = expected.get_state();
+    expected[1].field_value = expected[0].field_value - 10;
+    if expected[1].field_value > state[1][0] {{
+      state[0][0] -= 2;
+      state[1][0] = expected[0].field_value;
+    }}
+    
+    expected.set_state(state);
+    assert!(expected[1].field_value == output_phvs[i][1].field_value);
+
+    assert!(expected.get_state()[0][0] == output_phvs[i].get_state()[0][0]);
+
+    assert!(expected.get_state()[1][0] == output_phvs[i].get_state()[1][0]);
+  }}
+}}
+fn test_learn_filter (input_phvs : Vec <Phv <i32>>,
+                      output_phvs : Vec <Phv <i32> >) {{
+  for i in 0..output_phvs.len() {{
+    let mut expected : Phv <i32> = input_phvs[i].clone();
+    let mut state = expected.get_state();
+    if state[2][0] != 0 && state[1][0] != 0 && state[0][0] != 0 {{
+      expected[0].field_value = 1;
+    }}
+    state[2][0] = 1;
+    state[1][0] = 1;
+    state[0][0] = 1;
+    expected.set_state(state);
+    assert!(expected.get_state()[0][0] == output_phvs[i].get_state()[0][0]);
+    assert!(expected.get_state()[1][0] == output_phvs[i].get_state()[1][0]);
+
+    assert!(expected.get_state()[2][0] == output_phvs[i].get_state()[2][0]);
+
+  }}
+}}
+fn test_marple_new_flow (input_phvs : Vec <Phv <i32>>,
+                         output_phvs : Vec <Phv <i32> >) {{
+  for i in 0..output_phvs.len() {{
+    let mut expected : Phv <i32> = input_phvs[i].clone();
+    let mut state = expected.get_state();
+
+    if state[0][0] == 0 {{
+      expected[0].field_value = 1;
+      state[0][0] = 1;
+    }}
+
+    expected.set_state(state);
+    assert!(expected.get_state()[0][0] == output_phvs[i].get_state()[0][0]);
+    assert!(expected[0].field_value == output_phvs[i][0].field_value);
+  }}
+}}
+
+fn test_marple_tcp_nmo (input_phvs : Vec <Phv <i32>>,
+                        output_phvs : Vec <Phv <i32> >) {{
+  for i in 0..output_phvs.len() {{
+    let mut expected : Phv <i32> = input_phvs[i].clone();
+    let mut state = expected.get_state();
+
+    if expected[0].field_value >= state[0][0] {{
+      state[0][0] = expected[0].field_value;
+    }}
+    else {{
+      if expected[0].field_value < state[0][0] {{
+        state[1][0] += 1;
+      }}
+    }}
+    expected.set_state(state);
+    assert!(expected.get_state()[0][0] == output_phvs[i].get_state()[0][0]);
+    assert!(expected.get_state()[1][0] == output_phvs[i].get_state()[1][0]);
+
+
+  }}
+}}
+
+fn test_marple_tcp_nmo_7 (input_phvs : Vec <Phv <i32>>,
+                        output_phvs : Vec <Phv <i32> >) {{
+  for i in 0..output_phvs.len() {{
+
+  let mut result= input_phvs[i].clone();
+  let mut state : Vec <Vec<i32>> = result.get_state().clone();
+  if result[0].field_value < state[1][0]{{
+    if result[0].field_value < state[1][0] {{
+      state[0][0]+=1;
+    }}
+  }}
+  else {{
+    if result[0].field_value >= state[1][0]{{
+      state[1][0] = result[0].field_value;
+    }}
+  }}
+    result.set_state(state);
+    assert!(result.get_state()[0][0] == output_phvs[i].get_state()[0][0]);
+    assert!(result.get_state()[1][0] == output_phvs[i].get_state()[1][0]);
+
+
+  }}
+}}
+

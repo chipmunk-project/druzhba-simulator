@@ -1,0 +1,15 @@
+
+#[test]
+fn {name}() {{
+  let mut input_phvs : Vec <Phv <i32> > = create_random_phvs (10000, {num_packets}, {num_containers}, {num_state_vars}, {num_stateful_alus});
+
+  let pipeline : Pipeline = 
+    {prog_to_run_file}::init_pipeline (HashMap::new());
+  let result_input_output_phvs : (Vec<Phv<i32>>, Vec <Phv<i32>>)  =  run_pipeline (input_phvs.clone(),
+               pipeline,
+               10000);
+  let output_phvs : Vec<Phv<i32>> = result_input_output_phvs.1; 
+
+  let updated_input_phvs : Vec<Phv<i32>> = result_input_output_phvs.0; 
+  {test_function} (updated_input_phvs, output_phvs);
+}}

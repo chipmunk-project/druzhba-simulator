@@ -1,0 +1,36 @@
+version: 1.0.{build}
+image: Ubuntu1604
+branches:
+  # whitelist
+  only:
+    - master
+skip_branch_with_pr: true
+install:
+- sh: >-
+    set -e
+
+    curl https://sh.rustup.rs -sSf > /tmp/sh.rustup.rs
+
+    sh /tmp/sh.rustup.rs -y
+
+    source $HOME/.cargo/env
+
+    export PATH=$PATH:$HOME/.cargo/bin/
+
+    rustup default nightly
+
+build_script:
+- sh: >-
+    set -e
+
+    cd dgen
+
+    cargo build && cargo run simple ../example_alus/stateful_alus/raw.alu ../example_alus/stateless_alus/stateless_alu.alu 2 2 1 "0,1,2,3" ../src/prog_to_run.rs
+    
+    cd ..
+
+    cargo test
+
+    cargo bench # Test Druzhba
+
+    echo "********ALL DONE*******"

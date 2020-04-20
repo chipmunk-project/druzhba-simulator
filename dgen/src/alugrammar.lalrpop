@@ -1,0 +1,196 @@
+
+use std::str::FromStr;
+use crate::rust_code_generator::{Expr, Opcode, Stmt, Header, OptHeader, Alu};
+
+grammar;
+
+RELOP            = "rel_op"; // <, >, <=, >=, ==, !=
+ARITHOP          = "arith_op"; // +,-
+MUX3             = "Mux3";   // 3-to-1 mux
+MUX2             = "Mux2";   // 2-to-1 mux
+OPT              = "Opt";    // Pick either the argument or 0
+CONSTANT         = "C()"; // Return a finite constant
+TRUE             = "True";   // Guard corresponding to "always update"
+IF               = "if";
+ELSE             = "else";
+ELIF             = "elif";
+RETURN           = "return";
+EQUAL            = "==";
+GREATER          = ">";
+LESS             = "<";
+GREATER_OR_EQUAL = ">=";
+LESS_OR_EQUAL    = "<=";
+NOT_EQUAL        = "!=";
+OR               = "||";
+AND              = "&&";
+
+
+pub Alu : Box <Alu> = {
+  <oh:OptHeader?> <c:Comment*> <h:Header> <s:Stmt> => Box::new(Alu::Program (oh, h, s)),
+};
+
+pub OptHeader : Box<OptHeader> = {
+
+  "name" ":" <id:ID>
+  "hole configs" ":" <holes:ID?>
+  "pipeline" "stage" ":" <stage_num:Num> 
+  "alu" ":" <alu_num:Num>
+  "opt" "level" ":" <opt_num:Num>
+  "[" <n1:(<Num> ",")*> <n2:Num?> "]" => {
+    let constant_vec = match n2 {
+      Some (var) => {
+        let mut constant_vec_vars : Vec <String> = Vec::new();
+        for x in n1.iter(){
+          constant_vec_vars.push(x.to_string());
+        }
+        constant_vec_vars.push(var.to_string());
+        constant_vec_vars
+      }
+      None => {
+        let mut temp_vec : Vec <String> = Vec::new();
+        for x in n1.iter() {
+          temp_vec.push(x.to_string());
+        }
+        temp_vec
+      },
+    };
+    Box::new (OptHeader::Data (id, 
+                               holes, 
+                               stage_num, 
+                               alu_num, 
+                               opt_num, 
+                               constant_vec))
+  }
+};
+// TODO: this is working for now but should refine later
+pub Comment : String = {
+  "//" ID* Num* => String::from("")
+};
+StateVar = ID;
+HoleVar = ID;
+PacketField = ID;
+
+// Header for .alu file that specifies type, state vars,
+// hole vars, and packet fields
+pub Header : Box<Header> = {
+  "type" ":" <indicator:ID> 
+  "state" "variables" ":" "{" <sc:(<StateVar> ",")*> <sv:StateVar?> "}" 
+  "hole" "variables" ":" "{" <hc:(<HoleVar> ",")*> <hv:HoleVar?> "}"
+  "packet" "fields" ":" "{" <pc:(<PacketField> ",")*> <pf:PacketField?> "}" 
+  => {
+    let state_indicator = match indicator == "stateless" || 
+          indicator == "stateful" {
+        true => indicator,
+        _ => panic!("Type not stateless or stateful"),
+    };
+    let state_vars =   match sv {
+      Some (var) => { 
+        let mut vec_state_vars : Vec <String> = sc.clone();
+        vec_state_vars.push (var);
+        vec_state_vars
+      },
+      None => sc,
+    };
+    let hole_vars =  match hv {
+      Some (var) => { 
+        let mut vec_hole_vars : Vec <String> = hc.clone();
+        vec_hole_vars.push (var);
+        vec_hole_vars
+      },
+      None => hc,
+    };
+    let packet_fields =  match pf {
+      Some (var) => { 
+        let mut vec_packet_fields : Vec <String> = pc.clone();
+        vec_packet_fields.push (var);
+        vec_packet_fields
+      },
+      None => pc,
+    };
+    Box::new (Header::InputData(state_indicator, state_vars, hole_vars, packet_fields))
+  },
+};
+
+pub Stmt : Box<Stmt>  = {
+  <ret:RETURN> <e:Expr> ";"=>  Box::new (Stmt::Return (e)),
+  <var:Expr> "=" <e:Expr> ";"=> Box::new (Stmt::Assign (var, e)), 
+  // If/else statement
+  IF "(" <if_expr:Expr> ")" "{" <if_stmts:Stmt+>  "}" 
+  <elif_block:(ELIF "(" <Expr> ")" "{" <Stmt+> "}")*>
+  <else_block:(ELSE "{" <Stmt+> "}")?> 
+  => {
+    Box::new (Stmt::If (if_expr, if_stmts, elif_block, else_block))
+  },
+
+};
+
+// Expr -> AddExpr -> Factor -> Function -> Term
+// hierarchy needed to specify precedence
+pub Expr : Box<Expr> = {
+    
+   <e1:Expr> <op:ExprOp> <a:AddExpr>  => 
+    Box::new(Expr::Op (e1, op, a)),
+
+  <a:AddExpr> => a,
+
+};
+pub ExprOp : Opcode = {
+  EQUAL            => Opcode::Equal,  
+  GREATER          => Opcode::Greater,  
+  LESS             => Opcode::Less,
+  GREATER_OR_EQUAL => Opcode::GreaterOrEqual,
+  LESS_OR_EQUAL    => Opcode::LessOrEqual,
+  NOT_EQUAL        => Opcode::NotEqual,
+  OR               => Opcode::Or,
+  AND              => Opcode::And,
+};
+pub AddExpr : Box <Expr> = {
+  <a:AddExpr> <op:AddExprOp> <f:Factor> =>
+    Box::new(Expr::Op (a, op, f)),
+
+  <f:Factor> => f,
+};
+pub AddExprOp : Opcode = {
+  "+" => Opcode::Add,
+  "-" => Opcode::Sub,
+};
+
+pub Factor : Box<Expr> ={
+  <f:Factor> <op:FactorOp> <t:Term> => 
+    Box::new (Expr::Op (f, op, t)),
+  <f:Function> => f,
+};
+
+pub FactorOp : Opcode = {
+  "*" => Opcode::Mul,
+  "/" => Opcode::Div,
+};
+
+pub Function : Box <Expr> ={
+    <m:MUX3> "(" <e1:Expr> "," <e2:Expr> "," <e3:Expr> ")" =>
+    Box::new (Expr::Mux3 (e1, e2, e3)),
+  <m:MUX2> "(" <e1:Expr> "," <e2:Expr> ")" =>
+    Box::new (Expr::Mux2 (e1, e2)),
+  <a:ARITHOP> "(" <e1:Expr> "," <e2:Expr> ")" =>
+    Box::new (Expr::ArithOp (e1, e2)),
+  <o:OPT> "(" <e:Expr> ")" =>
+    Box::new (Expr::Opt (e)),
+  <r:RELOP> "(" <e1:Expr> "," <e2:Expr> ")" =>
+    Box::new (Expr::Relop (e1, e2)),
+
+  <t:Term> => t,
+};
+pub Term : Box <Expr> = {
+  <var:ID> => Box::new (Expr::Var (var)),
+  <n:Num> => Box::new (Expr::Num (n)),
+  <c:CONSTANT> => Box::new(Expr::Constant),
+  "(" <e:Expr> ")" => Box::new(Expr::ExprWithParen (e)),
+
+};
+Num: i32 = {
+  <s:r"[0-9]+"> => i32::from_str(s).unwrap(),
+};
+
+ID: String =  {
+  <s:r"[a-zA-Z_/.][a-zA-Z0-9_/.]*"> => s.to_string()
+};
