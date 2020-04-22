@@ -11,7 +11,7 @@ pub type PacketFieldSet = Vec <String>;
 #[derive(Clone)]
 pub struct Phv<T> {
   pub bubble : bool, // false if initialized, true otherwise
-  pub packets : Vec<PhvContainer<T>>, // Vector of PHV Containers
+  pub phv_containers : Vec<PhvContainer<T>>, // Vector of PHV Containers
   pub state : Vec< Vec<i32> > // Initial state value
 }
 
@@ -19,15 +19,17 @@ pub struct Phv<T> {
 impl<T> Phv<T>{
 
   pub fn new() -> Self {
-    Phv{ bubble : true, packets: Vec::new(), state : Vec::new()}
+    Phv{ bubble : true, 
+         phv_containers : Vec::new(), 
+         state : Vec::new() }
   }
 
   pub fn is_bubble(&self) -> bool {
     self.bubble == true
   }
 
-  pub fn add_container_to_phv(&mut self, pack: PhvContainer<T>) -> &Self {
-    self.packets.push(pack);
+  pub fn add_container_to_phv(&mut self, phv_container: PhvContainer<T>) -> &Self {
+    self.phv_containers.push(phv_container);
     self.bubble = false;
     self
   }
@@ -38,7 +40,7 @@ impl<T> Phv<T>{
     self.state.clone()
   }
   pub fn get_num_phv_containers (&self) -> i32 {
-    self.packets.len() as i32
+    self.phv_containers.len() as i32
   }
 }
 
@@ -51,14 +53,14 @@ impl<T> Phv<T>{
 impl<T> Index<i32> for Phv<T>{
   type Output = PhvContainer<T>;
   fn index(&self, i : i32) -> &Self::Output {
-     &self.packets[i as usize]
+     &self.phv_containers[i as usize]
   }
 }
 
 //Allows easy mutation of a container in a PHV
 impl<T> IndexMut<i32> for Phv<T> {
   fn index_mut(&mut self, i: i32 ) -> &mut PhvContainer<T> {
-    &mut self.packets[i as usize]
+    &mut self.phv_containers[i as usize]
   }
 }
 
@@ -68,10 +70,10 @@ impl<T> fmt::Display for Phv<T> where T : fmt::Display {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 
       let mut s : String = String::from("\nPHV Containers: {"); 
-      for i in 0..self.packets.len() {
+      for i in 0..self.phv_containers.len() {
         s.push_str(&format!( "[index : {}, value : {}], ", 
                              &i.to_string(), 
-                             &self.packets[i].field_value
+                             &self.phv_containers[i].field_value
                                   .to_string()));
       }
       s.push_str("}\nState: {");

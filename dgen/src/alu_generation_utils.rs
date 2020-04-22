@@ -173,7 +173,7 @@ fn generate_init_pipeline (name : String,
       pipeline_stage.push_str (&format!("  let mut {} : Vec<InputMux> = Vec::new();\n", 
                                       stateful_input_muxes));
 
-      pipeline_stage.push_str (&format!("  let empty_phv : Phv <i32> = Phv {{ bubble : true, packets : Vec::new(), state : Vec::new() }};\n"));
+      pipeline_stage.push_str (&format!("  let empty_phv : Phv <i32> = Phv {{ bubble : true, phv_containers : Vec::new(), state : Vec::new() }};\n"));
 
       // Iterates from 0 to number of stateful operands and creates
       // an input mux for each of them

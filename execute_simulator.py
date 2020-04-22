@@ -83,12 +83,12 @@ def main ():
     parser.add_argument(
             'hole_configs',
             type=str,
-            help='File path for the file containing the hole-to-value assignments')
+            help='File path for the file containing the machine code assignments')
 
     parser.add_argument(
-            'num_packets',
+            'num_phvs',
             type=int,
-            help='Number of PHV containers (should be equal to the number of packet fields)')
+            help='Number of PHV containers to randomly initialize by traffic generator. Rest of PHV containers initialized with 0')
     parser.add_argument(
             'ticks',
             type=int,
@@ -96,7 +96,7 @@ def main ():
     parser.add_argument(
             'opt_level',
             type=int,
-            help='Number corresponding to optimization level (0 for unoptimized, 1 for optimized)')
+            help='Number corresponding to optimization level (0 for unoptimized, 1 for sparse conditional constant propagation, 2 for inlining)')
 
 
     raw_args = parser.parse_args(argv[1:])
@@ -109,7 +109,7 @@ def main ():
     args.append(str(raw_args.num_stateful_alus))
     args.append(raw_args.constant_set)
     args.append(raw_args.hole_configs)
-    args.append(str(raw_args.num_packets))
+    args.append(str(raw_args.num_phvs))
     args.append(str(raw_args.ticks))
     opt_level = raw_args.opt_level
     args.append(str(opt_level))

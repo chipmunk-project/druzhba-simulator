@@ -37,57 +37,43 @@ fn extract_hole_cfgs (hole_cfgs_file : String) -> HashMap <String, i32> {
   }
   hole_cfgs_map
 }
-#[warn(unused_imports)]
-fn main() {
+fn init_state_vector (num_stateful_alus : i32, 
+                      num_state_values : i32) -> Vec<Vec<i32>> {
+  let mut state : Vec <Vec <i32> > = Vec::new();
+  for _ in 0..num_stateful_alus{
+    let mut tmp_state_vec : Vec<i32> = Vec::new();
+    for _ in 0..num_state_values {
+      tmp_state_vec.push(rand :: thread_rng().gen_range(0,100));
+    }
+    state.push (tmp_state_vec);
+  }
 
-  let args : Vec<String> = env::args().collect();
-  assert!(args.len() == 4 || args.len() == 3);
+}
+// Generate PHV and initialize state
+fn phv_generator (num_phvs : i32) -> Phv <i32>{
 
-  // Parse returns a result so unwrap
+  let mut phv : Phv<i32> = Phv::new();
+  (0..num_phvs)
+      .for_each ( |_| {
+       phv.add_container_to_phv(PhvContainer {
+           field_value :rand::thread_rng().gen_range(0,100),
+       }); 
+     });
+         
+  (num_phvs..prog_to_run::pipeline_width())
+      .for_each( |_| { 
+          phv.add_container_to_phv (PhvContainer{
+              field_value : 0,
+          });
+      }); 
+  let state = init_state_vector (num_stateful_alus, num_state_values);
+  phv.set_state(state);
+  phv
+}
 
-  let num_stateful_alus = prog_to_run::num_stateful_alus();
-  let num_state_values = prog_to_run::num_state_variables();
-//  println!("{:?}", hole_cfgs);
-  assert! (num_stateful_alus>=1);
-  let num_packets : i32 = 
-      match args.len() == 4 {
-        true =>  match args[2].parse::<i32>() {
-
-          Ok  (t_pkts) => t_pkts,
-          Err (_)         => panic!("Failure: Unable to unwrap ticks"),
-        },
-        false => match args[1].parse::<i32>() {
-
-          Ok  (t_pkts) => t_pkts,
-          Err (_)         => panic!("Failure: Unable to unwrap ticks"),
-        },
-
-    };
-
-  assert!(num_packets <= prog_to_run::pipeline_width());
-  let ticks : i32 = 
-      match args.len() == 4 {
-        true =>  match args[3].parse::<i32>() {
-
-          Ok  (t_ticks) => t_ticks,
-          Err (_)         => panic!("Failure: Unable to unwrap ticks"),
-        },
-        false => match args[2].parse::<i32>() {
-
-          Ok  (t_ticks) => t_ticks,
-          Err (_)         => panic!("Failure: Unable to unwrap ticks"),
-        },
-
-    };
-
-  assert! (ticks >= 1);
-      
-  let mut pipeline : Pipeline = 
-      match args.len() == 4 {
-        true  => prog_to_run::init_pipeline(extract_hole_cfgs(args[1].clone())),
-        // TODO: REmove hashmap argument when possible
-        false => prog_to_run::init_pipeline(HashMap::new()),
-      };
+fn execute_pipeline (num_phvs : i32,
+                     ticks : i32,
+                     pipeline : mut Pipeline) {
 
   // For every tick create a new packet with the 
   // specified input fields set to random values from
@@ -96,39 +82,10 @@ fn main() {
   let mut input_phvs : Vec <Phv <i32> > = Vec::new();
   let mut output_phvs : Vec <Phv <i32> > = Vec::new();
   // _t not used
-  for _t in 0..ticks {
-    
-    let mut packet : Phv<i32> = Phv::new();
-    
-        (0..num_packets)
-                    // _s not used
-            .for_each ( |_s| {
-             packet.add_container_to_phv(PhvContainer {
-                 field_value :rand::thread_rng().gen_range(0,100),
-             }); 
-           });
-           
-    (num_packets..prog_to_run::pipeline_width())
-        .for_each( |_s| { 
-            packet.add_container_to_phv (PhvContainer{
-                field_value : 0,
-            });
-        });
-
-    let mut state : Vec <Vec <i32> > = Vec::new();
-    // _i not used
-    for _i in 0..num_stateful_alus{
-      let mut tmp_state_vec : Vec<i32> = Vec::new();
-      // _j not used
-      for _j in 0..num_state_values {
-        tmp_state_vec.push(rand :: thread_rng().gen_range(0,100));
-           
-      }
-      state.push (tmp_state_vec);
-    }
-    packet.set_state(state);
+  for _ in 0..ticks {
+    let phv = phv_generator (num_phvs);  
     let updated_input_output_phvs: (Phv<i32>, Phv<i32>) = 
-        pipeline.tick (packet);
+        pipeline.tick (phv);
 
     let updated_input_phv = updated_input_output_phvs.0;
     let output_phv = updated_input_output_phvs.1;
@@ -143,6 +100,60 @@ fn main() {
     println!("Input: {}", input_phvs[i]);
     println!("Result: {}\n", output_phvs[i]);
   }
+
+}
+
+#[warn(unused_imports)]
+fn main() {
+
+  let args : Vec<String> = env::args().collect();
+  assert!(args.len() == 4 || args.len() == 3);
+
+  // Parse returns a result so unwrap
+
+  let num_stateful_alus = prog_to_run::num_stateful_alus();
+  let num_state_values = prog_to_run::num_state_variables();
+//  println!("{:?}", hole_cfgs);
+  assert! (num_stateful_alus>=1);
+  let num_phvs : i32 = 
+      match args.len() == 4 {
+        true =>  match args[2].parse::<i32>() {
+
+          Ok  (t_pkts) => t_pkts,
+          Err (_)         => panic!("Failure: Unable to unwrap ticks"),
+        },
+        false => match args[1].parse::<i32>() {
+
+          Ok  (t_pkts) => t_pkts,
+          Err (_)         => panic!("Failure: Unable to unwrap ticks"),
+        },
+
+    };
+  assert!(num_phvs <= prog_to_run::pipeline_width());
+  let ticks : i32 = 
+      match args.len() == 4 {
+        true =>  match args[3].parse::<i32>() {
+
+          Ok  (t_ticks) => t_ticks,
+          Err (_)         => panic!("Failure: Unable to unwrap ticks"),
+        },
+        false => match args[2].parse::<i32>() {
+
+          Ok  (t_ticks) => t_ticks,
+          Err (_)         => panic!("Failure: Unable to unwrap ticks"),
+        },
+    };
+  assert! (ticks >= 1);
+      
+  let mut pipeline : Pipeline = 
+      match args.len() == 4 {
+        true  => prog_to_run::init_pipeline(extract_hole_cfgs(args[1].clone())),
+        // TODO: REmove hashmap argument when possible
+        false => prog_to_run::init_pipeline(HashMap::new()),
+      };
+
+  execute_pipeline (num_phvs, ticks, pipeline);
+
 }
 #[cfg(test)]
 mod test_druzhba;
