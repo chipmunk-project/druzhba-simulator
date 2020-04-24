@@ -1,8 +1,10 @@
 extern crate rand;
 extern crate druzhba;
+extern crate clap;
 
 mod prog_to_run;
 mod tests;
+
 use druzhba::pipeline::Pipeline;
 use druzhba::phv::Phv;
 use druzhba::phv_container::PhvContainer;
@@ -10,12 +12,14 @@ use rand::Rng;
 use std::collections::HashMap;
 use std::env;
 use std::fs;
+use clap::{App, Arg};
 
 // Opens hole configs file of hole variable assignments
 // and initializes a HashMap from hole vaiables to
 // i32s.
 fn extract_hole_cfgs (hole_cfgs_file : String) -> HashMap <String, i32> {
 
+  println!("Extracting machine code pairs");
   let mut hole_cfgs_map : HashMap <String, i32> = HashMap::new();
   let hole_cfgs_file_contents : String = fs::read_to_string(hole_cfgs_file).expect ("Error: Hole configs file could not be found");
   let hole_cfgs_file_vec : Vec <String> = hole_cfgs_file_contents
@@ -47,11 +51,13 @@ fn init_state_vector (num_stateful_alus : i32,
     }
     state.push (tmp_state_vec);
   }
-
+  state
 }
 // Generate PHV and initialize state
 fn phv_generator (num_phvs : i32) -> Phv <i32>{
 
+  let num_stateful_alus = prog_to_run::num_stateful_alus();
+  let num_state_values = prog_to_run::num_state_variables();
   let mut phv : Phv<i32> = Phv::new();
   (0..num_phvs)
       .for_each ( |_| {
@@ -66,14 +72,15 @@ fn phv_generator (num_phvs : i32) -> Phv <i32>{
               field_value : 0,
           });
       }); 
-  let state = init_state_vector (num_stateful_alus, num_state_values);
+  let state = init_state_vector (num_stateful_alus, 
+                                 num_state_values);
   phv.set_state(state);
   phv
 }
 
 fn execute_pipeline (num_phvs : i32,
                      ticks : i32,
-                     pipeline : mut Pipeline) {
+                     mut pipeline : Pipeline) {
 
   // For every tick create a new packet with the 
   // specified input fields set to random values from
@@ -89,9 +96,7 @@ fn execute_pipeline (num_phvs : i32,
 
     let updated_input_phv = updated_input_output_phvs.0;
     let output_phv = updated_input_output_phvs.1;
-
     if !output_phv.is_bubble() {
-
       input_phvs.push (updated_input_phv.clone());
       output_phvs.push(output_phv.clone());
     }
@@ -100,60 +105,61 @@ fn execute_pipeline (num_phvs : i32,
     println!("Input: {}", input_phvs[i]);
     println!("Result: {}\n", output_phvs[i]);
   }
-
 }
 
 #[warn(unused_imports)]
 fn main() {
 
-  let args : Vec<String> = env::args().collect();
-  assert!(args.len() == 4 || args.len() == 3);
-
-  // Parse returns a result so unwrap
-
-  let num_stateful_alus = prog_to_run::num_stateful_alus();
-  let num_state_values = prog_to_run::num_state_variables();
-//  println!("{:?}", hole_cfgs);
-  assert! (num_stateful_alus>=1);
-  let num_phvs : i32 = 
-      match args.len() == 4 {
-        true =>  match args[2].parse::<i32>() {
-
-          Ok  (t_pkts) => t_pkts,
-          Err (_)         => panic!("Failure: Unable to unwrap ticks"),
-        },
-        false => match args[1].parse::<i32>() {
-
-          Ok  (t_pkts) => t_pkts,
-          Err (_)         => panic!("Failure: Unable to unwrap ticks"),
-        },
-
+  let matches = App::new("Druzhba")
+      .version("1.0")
+      .author("Mike W.")
+      .about("Hardware switch simulator for compiler testing")
+      .arg(Arg::with_name("containers")
+           .help("Number of PHV containers to be initialized by traffic generator")
+           .index(1)
+           .required(true)
+      )
+      .arg(Arg::with_name("ticks")
+           .help("Number of ticks to execute for. A PHV enters the pipeline at every tick.")
+           .index(2)
+           .required(true)
+      )
+      .arg(Arg::with_name("file")
+           .short('f')
+           .long("file")
+           .help("Path to file containing machine code pairs.")
+           .takes_value(true)
+           .required(false)
+      ).get_matches();
+       
+  let num_phv_containers : i32 = 
+    match matches.value_of("containers") {
+      Some (t_num_phv_containers) => match t_num_phv_containers.parse::<i32> () {
+        Ok(value) => value,
+        _  => panic!("Failure: Unable to unwrap num_phv_containers"),
+      }
+      _ => panic!("Error: num_phv_containers not provided"),
     };
-  assert!(num_phvs <= prog_to_run::pipeline_width());
-  let ticks : i32 = 
-      match args.len() == 4 {
-        true =>  match args[3].parse::<i32>() {
-
-          Ok  (t_ticks) => t_ticks,
-          Err (_)         => panic!("Failure: Unable to unwrap ticks"),
-        },
-        false => match args[2].parse::<i32>() {
-
-          Ok  (t_ticks) => t_ticks,
-          Err (_)         => panic!("Failure: Unable to unwrap ticks"),
-        },
+  let ticks: i32 = 
+    match matches.value_of("ticks") {
+      Some (t_ticks) => match t_ticks.parse::<i32> () {
+        Ok(value) => value,
+        _  => panic!("Failure: Unable to unwrap ticks"),
+      }
+      _ => panic!("Error: num_phv_containers not provided"),
     };
+
+  let file = matches.value_of("file").unwrap_or("");
   assert! (ticks >= 1);
-      
-  let mut pipeline : Pipeline = 
-      match args.len() == 4 {
-        true  => prog_to_run::init_pipeline(extract_hole_cfgs(args[1].clone())),
-        // TODO: REmove hashmap argument when possible
-        false => prog_to_run::init_pipeline(HashMap::new()),
+  assert! (prog_to_run::num_stateful_alus()>=1);
+  println!("File: {}", file);
+  let pipeline : Pipeline = 
+      match file {
+        "" => prog_to_run::init_pipeline(HashMap::new()),
+        _  => prog_to_run::init_pipeline(extract_hole_cfgs(file.to_string())),
       };
-
-  execute_pipeline (num_phvs, ticks, pipeline);
-
+  println!("Executing pipeline");
+  execute_pipeline (num_phv_containers, ticks, pipeline);
 }
 #[cfg(test)]
 mod test_druzhba;
