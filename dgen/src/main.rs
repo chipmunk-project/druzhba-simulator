@@ -122,8 +122,9 @@ fn main() {
             })
             .collect();
     let file_path : String = matches
-            .value_of("output")
+            .value_of("output_file")
             .unwrap_or("src/prog_to_run.rs")
+            .trim()
             .to_string();
 
     let stateful_alu_split : Vec <String>= stateful_alu
@@ -188,7 +189,6 @@ fn main() {
                                            opt_level);
     }
 
-    println!("Writing output to {}", file_path);
     println!("dgen completed");
 }
 

@@ -14,17 +14,21 @@ def run_dgen_unoptimized (args):
                     args[4], # Pipeline width
                     args[5], # Stateful ALUs per stage
                     args[6], # Constant vec
-                    'src/prog_to_run.rs', # Output prog_to_run
+                    '-o prog_to_run.rs', # Output prog_to_run
                     ])
     subprocess.run(['rm',
                     'dgen_bin'])
+    subprocess.run(['mv',
+                    'prog_to_run.rs',
+                    'src'])
+
 
 def run_druzhba_unoptimized (args):
     subprocess.run(['cargo',
                     'run',
                     args[7],
                     args[8],
-                    args[9]])
+                    ('--file ' + args[9])])
 def run_dgen_optimized (args):
     subprocess.run(['cp',
                     'dgen/target/debug/dgen',
@@ -37,12 +41,16 @@ def run_dgen_optimized (args):
                     args[4], # Pipeline width
                     args[5], # Stateful ALUs per stage
                     args[6], # Constant vec
-                    'src/prog_to_run.rs', # Output prog_to_run
+                    '-o prog_to_run.rs', # Output prog_to_run
                     args[7], # Hole configurations
-                    args[10] # Optimization level
+                    ('-O ' + args[10]) # Optimization level
                     ])
     subprocess.run(['rm',
                     'dgen_bin'])
+    subprocess.run(['mv',
+                    'prog_to_run.rs',
+                    'src'])
+
 
 def run_druzhba_optimized (args):
     subprocess.run(['cargo',

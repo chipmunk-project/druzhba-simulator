@@ -9,7 +9,8 @@ fi
 run_dgen_unoptimized () {
   echo "dgen unoptimized"
   chmod +x dgen_bin
-  ./dgen_bin $1 $2 $3 $4 $5 $6 $7 -o "src/prog_to_run.rs"
+  ./dgen_bin $1 $2 $3 $4 $5 $6 $7 -o "prog_to_run.rs"
+  mv prog_to_run.rs src
   rm dgen_bin
 }
 
@@ -17,7 +18,8 @@ run_dgen_optimized () {
 
   echo "dgen optimized"
   chmod +x dgen_bin
-  ./dgen_bin $1 $2 $3 $4 $5 $6 $7 $8 -o "src/prog_to_run.rs" -O $9
+  ./dgen_bin $1 $2 $3 $4 $5 $6 $7 $8 -o "prog_to_run.rs" -O $9
+  mv prog_to_run.rs src
   rm dgen_bin
 
 }
