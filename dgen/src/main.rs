@@ -51,7 +51,7 @@ fn main() {
         .required(true)
       )
       .arg(Arg::with_name("machine_code")
-        .help("Druzhba machine code (only required for optimzed code generation")
+        .help("Druzhba machine code (only required for optimzed code generation)")
         .index(8)
         .required(false)
       )

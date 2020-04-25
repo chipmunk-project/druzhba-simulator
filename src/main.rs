@@ -113,7 +113,6 @@ fn main() {
 
   let matches = App::new("Druzhba")
       .version("1.0")
-      .author("Mike W.")
       .about("Hardware switch simulator for compiler testing")
       .arg(Arg::with_name("containers")
            .help("Number of PHV containers to be initialized by traffic generator")
