@@ -28,18 +28,16 @@ fn main() {
   write_header(&mut test_file, &test_case_names);
   let test_data_directory = read_dir("src/tests/").unwrap();
   let mut index : usize = 0;
-
   // Generate unit test for every prog_to_run file to test
   // and put it in test_with_chipmunk.rs
   for dgen_output_file in test_data_directory {
-
       let file_name = match dgen_output_file {
         Ok (f) => format!("{:?}", f.file_name()),
         Err (_)      => panic!("Unable to unwrap test file"),
       };
-
-      if file_name.contains ("mod.rs") || index >= dgen_data.len() ||
-          index >= test_case_names.len(){
+      if file_name.contains ("mod.rs") || 
+         index >= dgen_data.len() ||
+         index >= test_case_names.len(){
         continue;
       }
     write_test(&mut test_file, 
@@ -126,18 +124,6 @@ fn run_dgen (test_case_names : &Vec<String>,
            .expect("Adding execution permissions to dgen_bin failed");
   let mut index : usize = 0;
   // Initializes a prog_to_run just so that Druzhba can compile
-  Command::new("./dgen_bin")
-              .arg("simple") // Name
-              .arg("example_alus/stateful_alus/raw.alu") // Stateful ALU
-              .arg("example_alus/stateless_alus/stateless_alu.alu") // Stateless ALU
-              .arg("2") // Depth
-              .arg("2") // Width
-              .arg("1") // Stateful ALUs
-              .arg("0,1,2,3") // constant vec
-              .arg("src/prog_to_run.rs")
-              .output()
-              .expect("Error running dgen");
-
   for arg in dgen_args.iter(){
     // Optimization level 1
     Command::new("./dgen_bin")
@@ -148,13 +134,20 @@ fn run_dgen (test_case_names : &Vec<String>,
                 .arg(&arg[4]) // Width
                 .arg(&arg[8]) // Stateful ALUs
                 .arg(&arg[5]) // constant vec
-                .arg(format!("src/tests/{}_optimized_1.rs", test_case_names[index]))
                 .arg(&arg[9]) // Hole configs
-                .arg("1") // Optimization
+                .arg(&format!("-o {}_optimized_1.rs ", test_case_names[index]))
+                .arg("-O1" ) // Optimization
+
                 .output()
                 .expect("Error running dgen");
 
+    Command::new("mv")
+          .arg(format!("{}_optimized_1.rs", test_case_names[index]))
+          .arg("src/tests")
+          .output()
+          .expect("Error moving files");
     // Optimization level 2
+
      Command::new("./dgen_bin")
                 .arg(&arg[0]) // Name
                 .arg(&arg[1]) // Stateful ALU
@@ -163,11 +156,19 @@ fn run_dgen (test_case_names : &Vec<String>,
                 .arg(&arg[4]) // Width
                 .arg(&arg[8]) // Stateful ALUs
                 .arg(&arg[5]) // constant vec
-                .arg(format!("src/tests/{}_optimized_2.rs", test_case_names[index]))
                 .arg(&arg[9]) // Hole configs
-                .arg("2") // Optimization
+                .arg(&format!("-o {}_optimized_2.rs ", test_case_names[index]))
+
+                .arg("-O2") // Optimization
                 .output()
                 .expect("Error running dgen");
+
+    Command::new("mv")
+          .arg(format!("{}_optimized_2.rs", test_case_names[index]))
+          .arg("src/tests")
+          .output()
+          .expect("Error moving files");
+
     // No optimization (level 0)
     Command::new("./dgen_bin")
                 .arg(&arg[0]) // Name
@@ -177,11 +178,16 @@ fn run_dgen (test_case_names : &Vec<String>,
                 .arg(&arg[4]) // Width
                 .arg(&arg[8]) // Stateful ALUs
                 .arg(&arg[5]) // constant vec
-                .arg(format!("src/tests/{}.rs", test_case_names[index]))
+                .arg(" -O 0 ")
+                .arg(&format!("-o {}.rs", test_case_names[index]))
                 .output()
                 .expect("Error running dgen");
-    
-
+   
+    Command::new("mv")
+          .arg(format!("{}.rs", test_case_names[index]))
+          .arg("src/tests")
+          .output()
+          .expect("Error moving files");
     index+=1;
   }
   // Cleanup
