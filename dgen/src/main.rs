@@ -6,7 +6,6 @@ pub mod rust_code_generator;
 #[macro_use] extern crate lalrpop_util;
 extern crate clap;
 
-use std::env; 
 use clap::{App, Arg};
 lalrpop_mod!(pub alugrammar); // synthesized by LALRPOP
 

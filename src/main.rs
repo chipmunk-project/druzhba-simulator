@@ -21,12 +21,13 @@ fn extract_hole_cfgs (hole_cfgs_file : String) -> HashMap <String, i32> {
 
   println!("Extracting machine code pairs");
   let mut hole_cfgs_map : HashMap <String, i32> = HashMap::new();
-  let hole_cfgs_file_contents : String = fs::read_to_string(hole_cfgs_file).expect ("Error: Hole configs file could not be found");
+  let hole_cfgs_file_contents : String = fs::read_to_string(hole_cfgs_file.to_string())
+        .expect (&format!("Error: Hole configs file {} could not be found",
+                hole_cfgs_file));
   let hole_cfgs_file_vec : Vec <String> = hole_cfgs_file_contents
                                           .split ("\n")
                                           .map (|s| s.to_string())
                                           .collect();
-
   for hole_var in hole_cfgs_file_vec {
       let hole_entry : Vec <&str> = hole_var
                                     .split("=")
@@ -102,8 +103,8 @@ fn execute_pipeline (num_phvs : i32,
     }
   }
   for i in 0..output_phvs.len(){
-    println!("Input: {}", input_phvs[i]);
-    println!("Result: {}\n", output_phvs[i]);
+    println!("Input PHV and state values prior to pipeline entry:\n {}", input_phvs[i]);
+    println!("Result PHV and state values following pipeline execution:\n{}\n\n", output_phvs[i]);
   }
 }
 
@@ -125,13 +126,13 @@ fn main() {
            .required(true)
       )
       .arg(Arg::with_name("file")
-           .short('f')
-           .long("file")
-           .help("Path to file containing machine code pairs.")
-           .takes_value(true)
-           .required(false)
+        .short('f')
+        .long("file")
+         .help("Path to file containing machine code pairs.")
+        .takes_value(true)
+        .required(false)
       ).get_matches();
-       
+
   let num_phv_containers : i32 = 
     match matches.value_of("containers") {
       Some (t_num_phv_containers) => match t_num_phv_containers.parse::<i32> () {
@@ -148,15 +149,16 @@ fn main() {
       }
       _ => panic!("Error: num_phv_containers not provided"),
     };
-
-  let file = matches.value_of("file").unwrap_or("");
+  let file = matches.value_of("file").unwrap_or("").trim().to_string();
   assert! (ticks >= 1);
   assert! (prog_to_run::num_stateful_alus()>=1);
   println!("File: {}", file);
   let pipeline : Pipeline = 
-      match file {
+      match file.as_str() {
         "" => prog_to_run::init_pipeline(HashMap::new()),
-        _  => prog_to_run::init_pipeline(extract_hole_cfgs(file.to_string())),
+        _  => prog_to_run::init_pipeline(
+                extract_hole_cfgs(file.to_string())
+        ),
       };
   println!("Executing pipeline");
   execute_pipeline (num_phv_containers, ticks, pipeline);

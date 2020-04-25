@@ -2,61 +2,95 @@
 import argparse
 import sys
 import subprocess
+import os
+
 def run_dgen_unoptimized (args):
     subprocess.run(['cp',
                     'dgen/target/debug/dgen',
                     'dgen_bin'])
-    subprocess.run(['./dgen_bin',
-                    args[0], # Program name
-                    args[1], # Stateful ALU
-                    args[2], # Stateless ALU
-                    args[3], # Pipeline depth
-                    args[4], # Pipeline width
-                    args[5], # Stateful ALUs per stage
-                    args[6], # Constant vec
-                    '-o prog_to_run.rs', # Output prog_to_run
-                    ])
+
+    with open (os.devnull, 'w') as FNULL:
+      subprocess.run(['./dgen_bin',
+                      args[0], # Program name
+                      args[1], # Stateful ALU
+                      args[2], # Stateless ALU
+                      args[3], # Pipeline depth
+                      args[4], # Pipeline width
+                      args[5], # Stateful ALUs per stage
+                      args[6], # Constant vec
+                      '-o prog_to_run.rs', # Output prog_to_run
+                      ], stderr=FNULL)
     subprocess.run(['rm',
                     'dgen_bin'])
     subprocess.run(['mv',
                     'prog_to_run.rs',
                     'src'])
 
+def run_dsim_unoptimized (args):
 
-def run_druzhba_unoptimized (args):
-    subprocess.run(['cargo',
-                    'run',
-                    args[7],
-                    args[8],
-                    ('--file ' + args[9])])
+    with open (os.devnull, 'w') as FNULL:
+      subprocess.run(['cargo',
+                      'run',
+                      args[8],
+                      args[9],
+                      '-f',
+                      args[7]])#, stderr=FNULL)
+
 def run_dgen_optimized (args):
     subprocess.run(['cp',
                     'dgen/target/debug/dgen',
                     'dgen_bin'])
-    subprocess.run(['./dgen_bin',
-                    args[0], # Program name
-                    args[1], # Stateful ALU
-                    args[2], # Stateless ALU
-                    args[3], # Pipeline depth
-                    args[4], # Pipeline width
-                    args[5], # Stateful ALUs per stage
-                    args[6], # Constant vec
-                    '-o prog_to_run.rs', # Output prog_to_run
-                    args[7], # Hole configurations
-                    ('-O ' + args[10]) # Optimization level
-                    ])
+    with open (os.devnull, 'w') as FNULL:
+      subprocess.run(['./dgen_bin',
+                      args[0], # Program name
+                      args[1], # Stateful ALU
+                      args[2], # Stateless ALU
+                      args[3], # Pipeline depth
+                      args[4], # Pipeline width
+                      args[5], # Stateful ALUs per stage
+                      args[6], # Constant vec
+                      '-o prog_to_run.rs', # Output prog_to_run
+                      args[7], # Hole configurations
+                      ('-O' + args[10]), # Optimization level
+                      ], stderr=FNULL)
     subprocess.run(['rm',
                     'dgen_bin'])
     subprocess.run(['mv',
                     'prog_to_run.rs',
                     'src'])
 
+def run_dsim_optimized (args):
+    with open(os.devnull,'w') as FNULL:
+      subprocess.run(['cargo',
+                      'run',
+                      args[8],
+                      args[9]], stderr=FNULL)
 
-def run_druzhba_optimized (args):
-    subprocess.run(['cargo',
-                    'run',
-                    args[8],
-                    args[9]])
+def rerun_dsim_unoptimized (args):
+    subprocess.run(['cp',
+                    'target/debug/druzhba',
+                    'dsim_bin'])
+    with open(os.devnull, 'w') as FNULL:
+      subprocess.run(['./dsim_bin',
+                      args[8],
+                      args[9],
+                      '-f',
+                      args[7]])#, stderr=FNULL)
+    subprocess.run(['rm',
+                    'dsim_bin'])
+
+
+def rerun_dsim_optimized (args):
+    subprocess.run(['cp',
+                    'target/debug/druzhba',
+                    'dsim_bin'])
+    with open(os.devnull, 'w') as FNULL:
+      subprocess.run(['./dsim_bin',
+                      args[8],
+                      args[9]], stderr=FNULL)
+    subprocess.run(['rm',
+                    'dsim_bin'])
+
 def main ():
     argv = sys.argv
     parser = argparse.ArgumentParser(description='dsim execution')
@@ -92,7 +126,6 @@ def main ():
             'hole_configs',
             type=str,
             help='File path for the file containing the machine code assignments')
-
     parser.add_argument(
             'num_phvs',
             type=int,
@@ -105,7 +138,10 @@ def main ():
             'opt_level',
             type=int,
             help='Number corresponding to optimization level (0 for unoptimized, 1 for sparse conditional constant propagation, 2 for inlining)')
-
+    parser.add_argument(
+             '-n', 
+              action='store_true', 
+              help='Set if attempting to simulate the previous configuration to prevent recompiling dsim')
 
     raw_args = parser.parse_args(argv[1:])
     args = []
@@ -121,16 +157,24 @@ def main ():
     args.append(str(raw_args.ticks))
     opt_level = raw_args.opt_level
     args.append(str(opt_level))
-    subprocess.run(['./build_dgen.sh'])
+    no_recompile = parser.parse_args().n
 
+    if no_recompile:
+      print('No recompile flag set') 
     if opt_level == 0:
-
-        run_dgen_unoptimized(args)
-        run_druzhba_unoptimized(args)
-
+        if no_recompile:
+          rerun_dsim_unoptimized(args)
+        else: 
+          subprocess.run(['./build_dgen.sh'])
+          run_dgen_unoptimized(args)
+          run_dsim_unoptimized(args)
     else:
-        run_dgen_optimized(args)
-        run_druzhba_optimized(args)
+        if no_recompile:
+          rerun_dsim_optimized(args)
+        else:
+          subprocess.run(['./build_dgen.sh'])
+          run_dgen_optimized(args)
+          run_dsim_optimized(args)
 
 
 if __name__== "__main__":

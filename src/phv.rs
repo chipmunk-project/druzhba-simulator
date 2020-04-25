@@ -69,7 +69,7 @@ impl<T> fmt::Display for Phv<T> where T : fmt::Display {
 
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 
-      let mut s : String = String::from("\nPHV Containers: {"); 
+      let mut s : String = String::from("PHV Containers: {"); 
       for i in 0..self.phv_containers.len() {
         s.push_str(&format!( "[index : {}, value : {}], ", 
                              &i.to_string(), 
@@ -86,7 +86,7 @@ impl<T> fmt::Display for Phv<T> where T : fmt::Display {
                               &self.state[i][j]));
         }
       }
-      s.push_str ("}\n");
+      s.push_str ("}");
       write!(f, "{}", s)
   }
 }
