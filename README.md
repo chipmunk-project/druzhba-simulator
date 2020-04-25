@@ -99,7 +99,7 @@ To execute dgen alone (note that this is within the dgen directory):
 Example:
 
     cd dgen
-    cargo run simple ../example_alus/stateful_alus/raw.alu ../example_alus/stateless_alus/stateless_alu.alu 2 2 1 "0,1,2,3"  -o ../src/prog_to_run.rs
+    cargo run simple ../example_alus/stateful_alus/raw.alu ../example_alus/stateless_alus/stateless_alu.alu 2 2 1 "0,1,2,3"  -o ../src/prog_to_run.rs 
 
 
 The output will be a Rust file containing the pipeline description to be simulated. To compile with dsim, rename the file to 
@@ -110,7 +110,6 @@ To execute dsim:
     dsim -h
 
     Druzhba 1.0
-    Mike W.
     Hardware switch simulator for compiler testing
 
     USAGE:
@@ -130,9 +129,14 @@ To execute dsim:
 
 Example:
 
-    cargo run 1 20 -f hole_configurations/simple_raw_stateless_alu_2_2_hole_cfgs.txt
+    cargo run 1 20 -f hole_configurations/simple_raw_stateless_alu_2_2_hole_cfgs.txt 2>/dev/null
 
-If optimizations are desired, the machine code is fed into dgen instead of dsim.
+
+If optimizations are desired (using -O1 or -O2 in dgen), the machine code is fed into dgen instead of dsim.
+
+The above example directs STDERR to null device due to compiler warnings from test generated dgen files. Many of these warnings 
+are either unavoidable or helpful for readibilty. While some can be fixed we leave that to future work due to the tediousness 
+of the task. 
 
 # Test
 
