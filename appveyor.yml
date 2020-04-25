@@ -25,7 +25,7 @@ build_script:
 
     cd dgen
 
-    cargo build &
+    cargo build 
 
     cd ..
 
