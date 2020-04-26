@@ -18,7 +18,7 @@ pipeline to be simulated and dsim uses this file to model the pipeline's feedfor
 
 2. Clone this repo. Note: rust nightly may need to be enabled:
 
-    rustup default nightly
+    ```rustup default nightly```
 
 3. You're good to go! 
 
@@ -63,8 +63,10 @@ Example:
 
     python3 druzhba_run.py simple example_alus/stateful_alus/raw.alu example_alus/stateless_alus/stateless_alu.alu 2 2 1 "0,1,2,3" hole_configurations/simple_raw_stateless_alu_2_2_hole_cfgs.txt 1 100 1
 
-Note: the -n recompile flag should be used if you have already compiled dsim previously and would like to rerun it without recompiling.
-This is especially useful if machine code pairs are to be swapped for unoptimized Druzhba executions. If the recompile flag is turned
+More examples can be found at the bottom. Note: the -n recompile flag should be used if you have already compiled dsim previously and would like to rerun it without recompiling.
+This is especially useful if machine code pairs are to be swapped for unoptimized Druzhba executions 
+or if the program is to be run with a different number of ticks. 
+If the recompile flag is turned
 on for a new pipeline configuration (e.g. different stateful ALU or pipeline dimensions) this will not work; dgen will need to be run again
 and the resulting file needs to be compiled with dsim.
 
@@ -163,4 +165,26 @@ To run these tests:
     cd dgen
     cargo test
 
+
+# More Examples
+
+
+Simulating marple_tcp_nmo:
+
+python3 druzhba_run.py marple_tcp_nmo_equivalent_1_canonicalizer_equivalent_0 example_alus/stateful_alus/pred_raw.alu example_alus/stateless_alus/stateless_alu.alu 3 2 2 "0,1,2,3" hole_configurations/marple_tcp_nmo_equivalent_1_canonicalizer_equivalent_0_pred_raw_stateless_alu_3_2_hole_cfgs.txt 1 20 2
+Simulating blue_increase:
+
+    python3 druzhba_run.py blue_increase_equivalent_2_canonicalizer_equivalent_0 example_alus/stateful_alus/pred_raw.alu example_alus/stateless_alus/stateless_alu_arith.alu 4 2 2 "11,21,10,12,0,3,1,2,10,2,1"  hole_configurations/blue_increase_equivalent_2_canonicalizer_equivalent_0_pred_raw_stateless_alu_arith_4_2_hole_cfgs.txt
+
+Simulating snap_heavy_hitter:
+
+    python3 druzhba_run.py snap_heavy_hitter example_alus/stateful_alus/pair.alu example_alus/stateless_alus/stateless_alu.alu 2 3  1 "0,1,2,3,999,997,1002,1000,4"  hole_configurations/snap_heavy_hitter_pair_stateless_alu_2_3_hole_cfgs.txt 1 20 2
+
+Simulating times two:
+
+    python3 druzhba_run.py times_two example_alus/stateful_alus/sub.alu example_alus/stateless_alus/stateless_alu_arith.alu 3 3 1 "0,1,2,3"  hole_configurations/times_two_sub_stateless_alu_arith_3_3_hole_cfgs.txt 1 100 1
+
+Simulating test algorithm:
+
+    python3 druzhba_run.py test example_alus/stateful_alus/if_else_raw.alu example_alus/stateless_alus/stateless_alu_arith_rel_cond.alu 4 4 2 "0,1,2,3"  hole_configurations/test_if_else_raw_stateless_alu_arith_rel_cond_4_4_hole_cfgs.txt 3 100 1
 
