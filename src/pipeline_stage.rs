@@ -44,7 +44,7 @@ impl PipelineStage {
       else{
         let mut output_phv : Phv<i32> = 
             Phv { bubble : false, 
-                  packets: Vec::new(),
+                  phv_containers: Vec::new(),
                   state : Vec::new()};
 
 
