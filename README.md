@@ -5,9 +5,8 @@
 
 # Overview
 
-Designing and developing compilers for programmable switches is challenging due to the restraints
-of switch architecture. Druzhba attempts to mitigate this issue by providing a test platform for
-these compilers. High level programs compiled to Druzhba's instruction set can be simulated, testing
+Druzhba is a hardware switch simulator for testing compilers targeting programmable switches.
+High level programs compiled to Druzhba's instruction set can be simulated, testing
 the abilities for these compilers to map programs to switch hardware primitives. Druzhba enables 
 simulation through 2 components: dgen and dsim. dgen generates a Rust file corresponding to the
 pipeline to be simulated and dsim uses this file to model the pipeline's feedforward behavior.
