@@ -103,7 +103,7 @@ fn execute_pipeline (num_phvs : i32,
     }
   }
   for i in 0..output_phvs.len(){
-    println!("Input PHV and state values prior to pipeline entry:\n {}", input_phvs[i]);
+    println!("Input PHV and state values prior to pipeline entry:\n{}", input_phvs[i]);
     println!("Result PHV and state values following pipeline execution:\n{}\n\n", output_phvs[i]);
   }
 }
@@ -111,7 +111,7 @@ fn execute_pipeline (num_phvs : i32,
 #[warn(unused_imports)]
 fn main() {
 
-  let matches = App::new("Druzhba")
+  let matches = App::new("dsim")
       .version("1.0")
       .about("Hardware switch simulator for compiler testing")
       .arg(Arg::with_name("containers")

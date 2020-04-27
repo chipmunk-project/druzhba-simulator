@@ -110,11 +110,11 @@ To execute dsim:
 
     dsim -h
 
-    Druzhba 1.0
+    dsim 1.0
     Hardware switch simulator for compiler testing
 
     USAGE:
-        dsim_bin [OPTIONS] <containers> <ticks>
+        dsim [OPTIONS] <containers> <ticks>
 
     ARGS:
         <containers>    Number of PHV containers to be initialized by traffic generator

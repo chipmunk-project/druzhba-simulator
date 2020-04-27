@@ -71,19 +71,25 @@ impl<T> fmt::Display for Phv<T> where T : fmt::Display {
 
       let mut s : String = String::from("PHV Containers: {"); 
       for i in 0..self.phv_containers.len() {
-        s.push_str(&format!( "[index : {}, value : {}], ", 
+        s.push_str(&format!( "[index : {}, value : {}]", 
                              &i.to_string(), 
                              &self.phv_containers[i].field_value
                                   .to_string()));
+        if i != self.phv_containers.len() - 1 {
+          s.push_str(", ");
+        }
       }
-      s.push_str("}\nState: {");
+      s.push_str("}\nState values: {");
       for i in 0..self.state.len() {
         for j in 0..self.state[i].len(){
-            
-          s.push_str(&format!("[state_group_{}_state_{} = {}], ",
+          s.push_str(&format!("[state_group_{}_state_{} = {}]",
                               &i.to_string(),
                               &j.to_string(),
                               &self.state[i][j]));
+        if i != self.phv_containers.len() - 1 {
+          s.push_str(", ");
+        }
+
         }
       }
       s.push_str ("}");
