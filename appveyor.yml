@@ -31,10 +31,8 @@ build_script:
 
     cp dgen/target/debug/dgen dgen_bin
   
-    ./dgen_bin simple example_alus/stateful_alus/raw.alu example_alus/stateless_alus/stateless_alu.alu 2 2 1 "0,1,2,3" -o src/prog_to_run.rs 2/dev/null
+    ./dgen_bin simple example_alus/stateful_alus/raw.alu example_alus/stateless_alus/stateless_alu.alu 2 2 1 "0,1,2,3" -o src/prog_to_run.rs 2>/dev/null
     
     cargo test 2>/dev/null
-
-#    cargo bench # Test Druzhba
 
     echo "********ALL DONE*******"
