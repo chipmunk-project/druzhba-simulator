@@ -148,9 +148,11 @@ def main ():
 
     elif opt_level == 0:
       subprocess.run(['./build_dgen.sh'])
+      print('Preparing dsim for execution (this may take a few minutes) ... ')
       run_dgen_unoptimized(args)
     else:
       subprocess.run(['./build_dgen.sh'])
+      print('Preparing dsim for execution (this may take a few minutes) ... ')
       run_dgen_optimized(args)
     run_dsim(args)
 
