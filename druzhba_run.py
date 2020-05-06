@@ -34,7 +34,7 @@ def run_dsim(args):
                       args[8],
                       args[9],
                       '-f',
-                      args[7]], stderr=FNULL)
+                      args[7]])# , stderr=FNULL)
 
 def run_dgen_optimized (args):
     subprocess.run(['cp',
@@ -52,7 +52,7 @@ def run_dgen_optimized (args):
                       '-o prog_to_run.rs', # Output prog_to_run
                       args[7], # Hole configurations
                       ('-O' + args[10]), # Optimization level
-                      ], stderr=FNULL)
+                      ])#,stderr=FNULL)
     subprocess.run(['rm',
                     'dgen_bin'])
     subprocess.run(['mv',
