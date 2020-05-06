@@ -187,8 +187,6 @@ fn main() {
                                            machine_code_file,
                                            opt_level);
     }
-
-    println!("dgen completed");
 }
 
 #[cfg(test)]
