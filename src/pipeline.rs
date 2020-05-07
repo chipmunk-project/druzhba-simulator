@@ -87,14 +87,6 @@ impl Pipeline {
       last_phvs
     }
   }
-  pub fn get_state_values (&self) -> Vec< Vec<Vec<i32>>> {
-    let mut stage_state = Vec::new();
-    for i in 0..self.pipeline_stages.len() {
-       stage_state.push(self.pipeline_stages[i].get_state_values()); 
-//        stage_map[&(i as usize)] = self.pipeline_stages[i].get_state_values(); 
-    }
-    stage_state
-  }
 }
 
 
