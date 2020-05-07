@@ -87,24 +87,33 @@ fn execute_pipeline (num_phvs : i32,
   // specified input fields set to random values from
   // 0 to 100. Send packet through pipeline and 
   // retrieve resulting packet.
-  let mut input_phvs : Vec <Phv <i32> > = Vec::new();
-  let mut output_phvs : Vec <Phv <i32> > = Vec::new();
+  let mut input_phvs = Vec::new();
+  let mut output_phvs = Vec::new();
   // _t not used
-  for _ in 0..ticks {
+  for t in 0..ticks {
     let phv = phv_generator (num_phvs);  
+    if t == 0 {
+      println!("Initial state: {:?}", 
+        phv.get_output_state_string()); 
+    }
+
     let updated_input_output_phvs: (Phv<i32>, Phv<i32>) = 
         pipeline.tick (phv);
 
     let updated_input_phv = updated_input_output_phvs.0;
     let output_phv = updated_input_output_phvs.1;
     if !output_phv.is_bubble() {
-      input_phvs.push (updated_input_phv.clone());
-      output_phvs.push(output_phv.clone());
+      input_phvs.push((t+1-prog_to_run::pipeline_depth(), 
+        updated_input_phv.clone()));
+      output_phvs.push((t, output_phv.clone()));
     }
   }
   for i in 0..output_phvs.len(){
-    println!("Input PHV and state values prior to pipeline entry:\n{}", input_phvs[i]);
-    println!("Result PHV and state values following pipeline execution:\n{}\n\n", output_phvs[i]);
+    println!("Tick {}: Input PHV and state values prior to pipeline entry:\n{}", 
+        input_phvs[i].0, input_phvs[i].1);
+    println!("Tick {}: Result PHV and state values following pipeline execution:\n{}\nState: {}\n\n", 
+        output_phvs[i].0, output_phvs[i].1, 
+        output_phvs[i].1.get_output_state_string());
   }
 }
 
@@ -165,3 +174,4 @@ fn main() {
 #[cfg(test)]
 mod test_druzhba;
 mod test_with_chipmunk;
+

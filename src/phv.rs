@@ -42,6 +42,25 @@ impl<T> Phv<T>{
   pub fn get_num_phv_containers (&self) -> i32 {
     self.phv_containers.len() as i32
   }
+  pub fn get_output_state_string (&self) -> String {
+    let mut s = String::from("");
+    s.push_str("State values: {");
+    for i in 0..self.state.len() {
+      for j in 0..self.state[i].len(){
+        s.push_str(&format!("[state_group_{}_state_{} = {}]",
+                            &i.to_string(),
+                            &j.to_string(),
+                            &self.state[i][j]));
+      if i != self.phv_containers.len() - 1 {
+        s.push_str(", ");
+      }
+
+      }
+    }
+    s.push_str ("}");
+    s
+
+  }
 }
 
 // Note: No need for AddAssign Trait implementation for PHV's -
@@ -79,20 +98,7 @@ impl<T> fmt::Display for Phv<T> where T : fmt::Display {
           s.push_str(", ");
         }
       }
-      s.push_str("}\nState values: {");
-      for i in 0..self.state.len() {
-        for j in 0..self.state[i].len(){
-          s.push_str(&format!("[state_group_{}_state_{} = {}]",
-                              &i.to_string(),
-                              &j.to_string(),
-                              &self.state[i][j]));
-        if i != self.phv_containers.len() - 1 {
-          s.push_str(", ");
-        }
 
-        }
-      }
-      s.push_str ("}");
       write!(f, "{}", s)
   }
 }
