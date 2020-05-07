@@ -171,9 +171,10 @@ To run these tests:
 Simulating marple_tcp_nmo:
 
     python3 druzhba_run.py marple_tcp_nmo_equivalent_1_canonicalizer_equivalent_0 example_alus/stateful_alus/pred_raw.alu example_alus/stateless_alus/stateless_alu.alu 3 2 2 "0,1,2,3" hole_configurations/marple_tcp_nmo_equivalent_1_canonicalizer_equivalent_0_pred_raw_stateless_alu_3_2_hole_cfgs.txt 1 20 2
+
 Simulating blue_increase:
 
-    python3 druzhba_run.py blue_increase_equivalent_2_canonicalizer_equivalent_0 example_alus/stateful_alus/pred_raw.alu example_alus/stateless_alus/stateless_alu_arith.alu 4 2 2 "11,21,10,12,0,3,1,2,10,2,1"  hole_configurations/blue_increase_equivalent_2_canonicalizer_equivalent_0_pred_raw_stateless_alu_arith_4_2_hole_cfgs.txt
+    python3 druzhba_run.py blue_increase_equivalent_2_canonicalizer_equivalent_0 example_alus/stateful_alus/pred_raw.alu example_alus/stateless_alus/stateless_alu_arith.alu 4 2 2 "11,21,10,12,0,3,1,2,10,2,1"  hole_configurations/blue_increase_equivalent_2_canonicalizer_equivalent_0_pred_raw_stateless_alu_arith_4_2_hole_cfgs.txt 2 10 2
 
 Simulating snap_heavy_hitter:
 
