@@ -46,15 +46,15 @@ fn main() {
         .required(true)
       ) 
       .arg(Arg::with_name("constant_vec")
-        .short('v')
-        .long("vector")
+        .short('c')
+        .long("constants")
         .about("Constant vector for Chipmunk")
         .takes_value(true)
         .required(false)
       )
-      .arg(Arg::with_name("machine_code")
-        .short('m')
-        .long("machine-code")
+      .arg(Arg::with_name("input_file")
+        .short('i')
+        .long("input")
         .about("Druzhba machine code (only required for optimzed code generation)")
         .takes_value(true)
         .required(false)
@@ -176,7 +176,7 @@ fn main() {
     else {
 
       let machine_code_file : String = 
-        match matches.value_of("machine_code") {
+        match matches.value_of("input_file") {
           Some (s) => s.to_string(),
           _        => panic!("Error: machine code file not provided"),
         };

@@ -133,9 +133,9 @@ fn main() {
            .index(2)
            .required(true)
       )
-      .arg(Arg::with_name("file")
-        .short('f')
-        .long("file")
+      .arg(Arg::with_name("input_file")
+        .short('i')
+        .long("input")
         .about("Path to file containing machine code pairs.")
         .takes_value(true)
         .required(false)
@@ -157,7 +157,11 @@ fn main() {
       }
       _ => panic!("Error: num_phv_containers not provided"),
     };
-  let file = matches.value_of("file").unwrap_or("").trim().to_string();
+  let file = matches.value_of("input_file")
+      .unwrap_or("")
+      .trim()
+      .to_string();
+
   assert! (ticks >= 1);
   assert! (prog_to_run::num_stateful_alus()>=1);
   println!("File: {}", file);

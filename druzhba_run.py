@@ -12,27 +12,27 @@ def run_dgen_unoptimized (args):
     with open (os.devnull, 'w') as FNULL:
         if args[6] == '':
             subprocess.run(['./dgen_bin',
-                            args[0], # Program name
-                            args[1], # Stateful ALU
-                            args[2], # Stateless ALU
-                            args[3], # Pipeline depth
-                            args[4], # Pipeline width
-                            args[5], # Stateful ALUs per stage
-                            '-o prog_to_run.rs', # Output prog_to_run
-                            ])#, stderr=FNULL)
+                 args[0],  # Program name
+                 args[1],  # Stateful ALU
+                 args[2],  # Stateless ALU
+                 args[3],  # Pipeline depth
+                 args[4],  # Pipeline width
+                 args[5],  # Stateful ALUs per stage
+                 '-o prog_to_run.rs',  # Output prog_to_run
+                 ], stderr=FNULL)
 
         else:
             subprocess.run(['./dgen_bin',
-                            args[0], # Program name
-                            args[1], # Stateful ALU
-                            args[2], # Stateless ALU
-                            args[3], # Pipeline depth
-                            args[4], # Pipeline width
-                            args[5], # Stateful ALUs per stage
-                            '-v', 
-                            args[6], # Constant vec
-                            '-o prog_to_run.rs', # Output prog_to_run
-                            ]) #, stderr=FNULL)
+                 args[0],  # Program name
+                 args[1],  # Stateful ALU
+                 args[2],  # Stateless ALU
+                 args[3],  # Pipeline depth
+                 args[4],  # Pipeline width
+                 args[5],  # Stateful ALUs per stage
+                 '-c', 
+                 args[6],  # Constant vec
+                 '-o prog_to_run.rs',  # Output prog_to_run
+                 ],  stderr=FNULL)
     subprocess.run(['rm',
                     'dgen_bin'])
     subprocess.run(['mv',
@@ -43,64 +43,64 @@ def run_dsim(args):
 
     with open (os.devnull, 'w') as FNULL:
         subprocess.run(['cargo',
-                        'run',
-                        args[8],
-                        args[9],
-                        '-f',
-                        args[7]])#, stderr=FNULL)
+             'run',
+             args[8],
+             args[9],
+             '-i',
+             args[7]], stderr=FNULL)
 
 def run_dgen_optimized (args):
     subprocess.run(['cp',
-                    'dgen/target/debug/dgen',
-                    'dgen_bin'])
+             'dgen/target/debug/dgen',
+             'dgen_bin'])
     with open (os.devnull, 'w') as FNULL:
         if args[6] == '':
             subprocess.run(['./dgen_bin',
-                            args[0], # Program name
-                            args[1], # Stateful ALU
-                            args[2], # Stateless ALU
-                            args[3], # Pipeline depth
-                            args[4], # Pipeline width
-                            args[5], # Stateful ALUs per stage
-                            '-o prog_to_run.rs', # Output prog_to_run
-                            '-m',
-                             args[7], # Hole configurations
-                            ('-O' + args[10]), # Optimization level
-                            ], stderr=FNULL)
+                 args[0],  # Program name
+                 args[1],  # Stateful ALU
+                 args[2],  # Stateless ALU
+                 args[3],  # Pipeline depth
+                 args[4],  # Pipeline width
+                 args[5],  # Stateful ALUs per stage
+                 '-o prog_to_run.rs',  # Output prog_to_run
+                 '-i',
+                  args[7],  # Hole configurations
+                 ('-O' + args[10]),  # Optimization level
+                 ], stderr=FNULL)
         else: 
             subprocess.run(['./dgen_bin',
-                            args[0], # Program name
-                            args[1], # Stateful ALU
-                            args[2], # Stateless ALU
-                            args[3], # Pipeline depth
-                            args[4], # Pipeline width
-                            args[5], # Stateful ALUs per stage
-                            '-v',
-                            args[6], # Constant vec
-                            '-o prog_to_run.rs', # Output prog_to_run
-                            '-m',
-                             args[7], # Hole configurations
-                            ('-O' + args[10]), # Optimization level
-                            ],stderr=FNULL)
+                args[0],  # Program name
+                args[1],  # Stateful ALU
+                args[2],  # Stateless ALU
+                args[3],  # Pipeline depth
+                args[4],  # Pipeline width
+                args[5],  # Stateful ALUs per stage
+                '-c',
+                args[6],  # Constant vec
+                '-o prog_to_run.rs',  # Output prog_to_run
+                '-i',
+                 args[7],  # Hole configurations
+                ('-O' + args[10]),  # Optimization level
+                ], stderr=FNULL)
     subprocess.run(['rm',
-                    'dgen_bin'])
+        'dgen_bin'])
     subprocess.run(['mv',
-                    'prog_to_run.rs',
-                    'src'])
+        'prog_to_run.rs',
+        'src'])
 
 
 def rerun_dsim (args):
     subprocess.run(['cp',
-                    'target/debug/druzhba',
-                    'dsim_bin'])
+         'target/debug/druzhba',
+         'dsim_bin'])
     with open(os.devnull, 'w') as FNULL:
       subprocess.run(['./dsim_bin',
-                      args[8],
-                      args[9],
-                      '-f',
-                      args[7]], stderr=FNULL)
+           args[8],
+           args[9],
+           '-i',
+           args[7]], stderr=FNULL)
     subprocess.run(['rm',
-                    'dsim_bin'])
+        'dsim_bin'])
 
 def main ():
     argv = sys.argv
@@ -129,12 +129,13 @@ def main ():
             'num_stateful_alus', 
             type=int,
             help='Number of stateful ALUs per stage (number of state variables in spec)')
-    parser.add_argument('-v',   
-        '--constants',
-        nargs='?', 
-        type=str,
-        default='',
-        help='Constant vector for Chipmunk')
+    parser.add_argument(
+             '-c',   
+             '--constants',
+             nargs='?', 
+             type=str,
+             default='',
+             help='Constant vector for Chipmunk')
     parser.add_argument(
             'hole_configs',
             type=str,
