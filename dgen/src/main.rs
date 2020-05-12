@@ -50,7 +50,6 @@ fn main() {
         .long("vector")
         .about("Constant vector for Chipmunk")
         .takes_value(true)
-//        .index(7)
         .required(false)
       )
       .arg(Arg::with_name("machine_code")
@@ -58,7 +57,6 @@ fn main() {
         .long("machine-code")
         .about("Druzhba machine code (only required for optimzed code generation)")
         .takes_value(true)
- //       .index(8)
         .required(false)
       )
       .arg(Arg::with_name("output_file")
@@ -114,26 +112,12 @@ fn main() {
           Ok (t_pipeline_width) => t_pipeline_width,
           Err (_)               => panic!("Failure: Unbale to unwrap number of stateful ALUs"),
         };
-/*
-    let constant_vec_string : String = matches
-            .value_of("constant_vec")
-            .unwrap()
-            .to_string();
-
-    let constant_vec : Vec <i32> = constant_vec_string
-            .split(",")
-            .map(|n| 
-                 match n.trim().parse::<i32>() {
-                   Ok (num) => num,
-                   Err (_)  => panic!("Failrure: Unable to parse constant set"),
-            })
-            .collect();*/
       let constant_vec = 
         match matches.value_of("constant_vec") {
           Some (s) => s.split(",")
                        .map(|n| match n.trim().parse::<i32>() {
                            Ok (num) => num,
-                           Err (_)  => panic!("Failrure: Unable to parse constant set"),
+                           Err (_)  => panic!("Failure: Unable to parse constant set"),
                         })
                        .collect(),
           _        => Vec::new(),

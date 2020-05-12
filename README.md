@@ -1,5 +1,6 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/8bmj5q0xotaa9xe8/branch/master?svg=true)](https://ci.appveyor.com/project/mdw362/druzhba-public/branch/master)
-
+ 
+Note: README is outdated, will be updated soon. In the meantime, for usage instrucions run ```python3 druzhba_run.py -h```. If you need any help, feel free to reach out
 
 # `Druzhba`
 
