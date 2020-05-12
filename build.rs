@@ -194,11 +194,14 @@ fn run_dgen (test_case_names : &Vec<String>,
                 .arg(&arg[3]) // Depth
                 .arg(&arg[4]) // Width
                 .arg(&arg[8]) // Stateful ALUs
+                .arg("-c")
                 .arg(&arg[5]) // constant vec
+                .arg("-i")
                 .arg(&arg[9]) // Hole configs
-                .arg(&format!("-o {}_optimized_1.rs ", test_case_names[index]))
-                .arg("-O1" ) // Optimization
-
+                .arg("-o")
+                .arg(&format!("{}_optimized_1.rs ", test_case_names[index]))
+                .arg("-O") // Optimization
+                .arg("1")
                 .output()
                 .expect("Error running dgen");
 
@@ -216,11 +219,15 @@ fn run_dgen (test_case_names : &Vec<String>,
                 .arg(&arg[3]) // Depth
                 .arg(&arg[4]) // Width
                 .arg(&arg[8]) // Stateful ALUs
-                .arg(&arg[5]) // constant vec
+                .arg("-i")
                 .arg(&arg[9]) // Hole configs
-                .arg(&format!("-o {}_optimized_2.rs ", test_case_names[index]))
+                .arg("-c")
+                .arg(&arg[5]) // constant vec
+                .arg("-o")
+                .arg(&format!("{}_optimized_2.rs ", test_case_names[index]))
 
-                .arg("-O2") // Optimization
+                .arg("-O") // Optimization
+                .arg("2")
                 .output()
                 .expect("Error running dgen");
 
@@ -229,8 +236,7 @@ fn run_dgen (test_case_names : &Vec<String>,
           .arg("src/tests")
           .output()
           .expect("Error moving files");
-
-    // No optimization (level 0)
+   
     Command::new("./dgen_bin")
                 .arg(&arg[0]) // Name
                 .arg(&arg[1]) // Stateful ALU
@@ -238,12 +244,14 @@ fn run_dgen (test_case_names : &Vec<String>,
                 .arg(&arg[3]) // Depth
                 .arg(&arg[4]) // Width
                 .arg(&arg[8]) // Stateful ALUs
+                .arg("-c")
                 .arg(&arg[5]) // constant vec
-                .arg(" -O 0 ")
-                .arg(&format!("-o {}.rs", test_case_names[index]))
+                .arg("-o")
+                .arg(format!("{}.rs", test_case_names[index]))
+                .arg("-O")
+                .arg("0")
                 .output()
                 .expect("Error running dgen");
-   
     Command::new("mv")
           .arg(format!("{}.rs", test_case_names[index]))
           .arg("src/tests")
