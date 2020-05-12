@@ -59,19 +59,20 @@ impl fmt::Display for Alu {
           None     => write!(f, ""),
         }.expect ("Error: issue with match statement on OptHeader");
         let constant_vec_string : String = 
-            match *OPTIMIZED.read().unwrap(){
+            match *OPTIMIZED.read().unwrap() {
                 0 => {
-                    let temp_constant_vec : Vec <String> = CONSTANT_VEC.read()
-                                                                       .unwrap()
-                                                                       .clone();
- 
-                    let mut constant_vec : Vec <i32> = Vec::new();
+                    let temp_constant_vec = CONSTANT_VEC.read()
+                        .unwrap()
+                        .clone();
+                    let mut constant_vec = Vec::new();
                     for x in temp_constant_vec.iter(){
                       constant_vec.push (x.parse::<i32>().unwrap());
                     }
-
-                    format!("    let constant_vec : Vec <i32> = vec!{:?};\n",
-                                            constant_vec)
+                    match temp_constant_vec.len() == 0 {
+                        true => "".to_string(),
+                        false => format!("    let constant_vec : Vec <i32> = vec!{:?};\n",
+                            constant_vec),
+                    }
                 },
                 _ => String::from(""),
             };
@@ -426,21 +427,34 @@ impl fmt::Display for Expr {
                 Some (_ind3) => {
                     let hole_name : String = generate_hole_name (variable.clone());
                       if hole_name.contains("immediate") {
+                        let tmp_const_vec = CONSTANT_VEC.read().unwrap();
                         if optimize == 0 {
-                          format!("constant_vec[hole_vars[\"{}\"] as usize]", generate_hole_name (variable.clone()))
+                          let name = generate_hole_name(variable.clone());
+                          match tmp_const_vec.len() == 0 {
+                              true => format!("hole_vars[\"{}\"]", 
+                                  name),
+                              false => format!("constant_vec[hole_vars[\"{}\"] as usize]", 
+                                  name),
+                          }
                         
                         }
                         // Replace immediate with correct constant
                         // vector value in stateless ALU
                         else {
-                          let name : String = generate_hole_name (variable.clone());
-                          let hole_val : i32 = 
+                          let name = generate_hole_name (variable.clone());
+                          let hole_val = 
                             match HOLE_VALS.read().unwrap().get(&name){
                               Some (num) => *num,
                               _          => panic!("Error: Could not get hole variable"),
 
                           };
-                          format!("{}", CONSTANT_VEC.read().unwrap()[hole_val as usize])
+                          let temp_constant_vec = CONSTANT_VEC
+                              .read()
+                              .unwrap();
+                          match temp_constant_vec.len() == 0 {
+                              true => format!("{}", hole_val),
+                              false => format!("{}", temp_constant_vec[hole_val as usize]),
+                          } 
                         }
                       }
                       else {
@@ -633,8 +647,6 @@ impl fmt::Display for Expr {
           panic!("Error: Optimization level is invalid");
         }
 
-
-
       },
       Expr::Relop (e1, e2) => {
         let rel_op_hole_name : String = 
@@ -673,8 +685,6 @@ impl fmt::Display for Expr {
         else { 
           panic!("Error: Optimization level is invalid");
         }
-
-
       },
       Expr::Constant => {
         let constant_hole_name : String = 
@@ -688,7 +698,7 @@ impl fmt::Display for Expr {
                    constant_name,
                    constant_hole_name)
         }
-        else if optimize > 0{
+        else if optimize > 0 {
            let opcode : i32 = 
               match HOLE_VALS.read().unwrap().get(&constant_hole_name){
                  Some (num) => *num,
@@ -701,18 +711,25 @@ impl fmt::Display for Expr {
                       constant_name)
             }
             else {
+                generate_constant_optimized(constant_name.clone(),
+                    opcode);
                 let temp_constant_vec : Vec <String> = CONSTANT_VEC
-                                                       .read()
-                                                       .unwrap()
-                                                       .clone();
+                     .read()
+                     .unwrap()
+                     .clone();
 
-               match opcode >= temp_constant_vec.len() as i32 {
+               match opcode >= temp_constant_vec.len() as i32 &&
+                     temp_constant_vec.len() > 0 {
                   true => write!(f, 
-                                 "{}",
-                                 temp_constant_vec[temp_constant_vec.len()-1]),
-                  false => write!(f, 
-                                  "{}", 
-                                  temp_constant_vec[opcode as usize]),
+                       "{}",
+                       temp_constant_vec[temp_constant_vec.len()-1]),
+                  false => match temp_constant_vec.len() > 0 { 
+                      true => 
+                          write!(f, 
+                              "{}", 
+                              temp_constant_vec[opcode as usize]),
+                      false => write!(f, "{}", opcode),
+                    }
 
                 }
             }
@@ -947,16 +964,17 @@ fn generate_constant_optimized (constant_name : String,
   let temp_constant_vec : Vec <String> = CONSTANT_VEC.read()
                                                      .unwrap()
                                                      .clone();
-
   let fn_body : String = 
-      match opcode >= temp_constant_vec.len() as i32 {
+      match opcode >= temp_constant_vec.len() as i32 &&
+            temp_constant_vec.len() > 0 {
         true => format!("  {}\n}}\n",
-                        temp_constant_vec[temp_constant_vec.len()-1]),
-        false => format!("  {}\n}}\n", 
-                         temp_constant_vec[opcode as usize]),
-
+            temp_constant_vec[temp_constant_vec.len()-1]),
+        false => match temp_constant_vec.len() > 0 {
+             true => format!("  {}\n}}\n", 
+                 temp_constant_vec[opcode as usize]),
+             false => format!("  {}\n}}\n", opcode),
+         }
       };
-
   let constant_fn : String = format!("{}{}", 
                                      fn_header,
                                      fn_body);
@@ -965,27 +983,25 @@ fn generate_constant_optimized (constant_name : String,
 
 fn generate_constant(constant_name : String)
 {
-
   let fn_header : String = 
-      format! ("fn {} (constant : i32) -> i32 {{\n",
-               constant_name);
-   let temp_constant_vec : Vec <String> = CONSTANT_VEC.read()
-                                                      .unwrap()
-                                                      .clone();
+       format! ("fn {} (constant : i32) -> i32 {{\n",
+           constant_name);
+  let temp_constant_vec : Vec <String> = CONSTANT_VEC.read()
+                                                     .unwrap()
+                                                     .clone();
    let mut constant_vec : Vec <i32> = Vec::new();
    for x in temp_constant_vec.iter(){
      constant_vec.push (x.parse::<i32>().unwrap());
    }
-
-    let constant_vec_string : String = format!("  let constant_vec : Vec <i32> = vec!{:?};\n", 
-                                               constant_vec);
-    let ret : String = format!("  constant_vec[constant as usize]\n}}");
-
-  let mut const_fn : String = String::from("");
-  const_fn.push_str (&fn_header);
-  const_fn.push_str (&constant_vec_string);
-  const_fn.push_str (&ret);
-  HELPER_STRING.write().unwrap().push_str (&const_fn);
+    let ret = match temp_constant_vec.len() == 0 {
+        true => format!("  constant\n}}"),
+        false => format!("  let constant_vec = vec!{:?};\n  constant_vec[constant as usize]\n}}",
+            constant_vec),
+    };
+    let mut const_fn : String = String::from("");
+    const_fn.push_str (&fn_header);
+    const_fn.push_str (&ret);
+    HELPER_STRING.write().unwrap().push_str (&const_fn);
 
 }
 fn generate_opt_optimized (opt_name : String,
@@ -998,8 +1014,8 @@ fn generate_opt_optimized (opt_name : String,
         _ => String::from("  0\n}\n"),
       };
   let opt_fn : String = format!("{}{}", 
-                                     fn_header,
-                                     fn_body);
+       fn_header,
+       fn_body);
   HELPER_STRING.write().unwrap().push_str(&opt_fn);
 }
 

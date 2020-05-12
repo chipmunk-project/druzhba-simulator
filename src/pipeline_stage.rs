@@ -48,27 +48,26 @@ impl PipelineStage {
                   state : Vec::new()};
 
 
-        let mut old_state : Vec <i32> = Vec::new();
+        let mut state_for_output_mux: Vec <i32> = Vec::new();
         // List of new state variables for output mux
-        let mut new_state : Vec <Vec <i32> > = Vec::new();
+        let mut new_state: Vec <Vec <i32> > = Vec::new();
         // Need old state variables first to put them
         // into output muxes later
-        let mut alu_count : usize = 0;
+        let mut alu_count: usize = 0;
 
         for alu in self.stateful_alus.iter_mut () {
           if self.salu_configs[alu_count] == 1 {
-
             if self.state_container.len() == 0 {
               self.state_container = input_phv.get_state();
               output_phv.set_state (input_phv.get_state());
             }
             // Update new phv state
             else {
-              let mut t_input_state : Vec<Vec<i32>> = input_phv.get_state().clone();
+              let mut t_input_state: Vec<Vec<i32>> = input_phv.get_state().clone();
               t_input_state[alu_count] = self.state_container[alu_count].clone();
               input_phv.set_state(t_input_state);
 
-              let mut t_initial_state : Vec<Vec<i32>> = initial_phv.get_state();
+              let mut t_initial_state: Vec<Vec<i32>> = initial_phv.get_state();
               t_initial_state[alu_count] = self.state_container[alu_count].clone();
               initial_phv.set_state(t_initial_state);
             }
@@ -85,10 +84,10 @@ impl PipelineStage {
           let new_state_result : Vec <i32> = state_result.1;
 
           if self.output_mux_globals[alu_count] == 1 {
-            old_state.append(&mut old_state_result);
+            state_for_output_mux.append(&mut old_state_result);
           }
           else {
-            old_state.append(&mut new_state_result.clone());
+            state_for_output_mux.append(&mut new_state_result.clone());
           }
           new_state.push (new_state_result);
           alu.reset_state_variables();
@@ -110,7 +109,7 @@ impl PipelineStage {
 
           let result : i32 =  alu.run(&packet_fields).0[0];
           // State variables and returned value from stateless ALU
-          let mut output_mux_fields : Vec <i32> = old_state.clone();
+          let mut output_mux_fields : Vec <i32> = state_for_output_mux.clone();
 
           output_mux_fields.push (result);
 
@@ -119,6 +118,8 @@ impl PipelineStage {
         }
  
         // Update output_phv state variables
+        // output_state is the result of the state variables after the
+        // stage's execution. 
         let mut output_state : Vec <Vec <i32> > = Vec::new();
         for i in 0..self.salu_configs.len() {
           if self.salu_configs[i] == 1 {
@@ -130,11 +131,9 @@ impl PipelineStage {
             output_state.push (input_phv.get_state()[i].clone());
           }
         }
-
         output_phv.set_state (output_state);
         (initial_phv, output_phv)
       }
-      
     }
     
   }
