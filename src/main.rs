@@ -20,25 +20,25 @@ use clap::{App, Arg};
 fn extract_hole_cfgs (hole_cfgs_file : String) -> HashMap <String, i32> {
 
   println!("Extracting machine code pairs");
-  let mut hole_cfgs_map : HashMap <String, i32> = HashMap::new();
-  let hole_cfgs_file_contents : String = fs::read_to_string(hole_cfgs_file.to_string())
+  let mut hole_cfgs_map: HashMap <String, i32> = HashMap::new();
+  let hole_cfgs_file_contents: String = fs::read_to_string(hole_cfgs_file.to_string())
         .expect (&format!("Error: Hole configs file {} could not be found",
                 hole_cfgs_file));
-  let hole_cfgs_file_vec : Vec <String> = hole_cfgs_file_contents
-                                          .split ("\n")
-                                          .map (|s| s.to_string())
-                                          .collect();
+  let hole_cfgs_file_vec: Vec <String> = hole_cfgs_file_contents
+      .split ("\n")
+      .map (|s| s.to_string())
+      .collect();
   for hole_var in hole_cfgs_file_vec {
       let hole_entry : Vec <&str> = hole_var
-                                    .split("=")
-                                    .map(|s| s.trim())
-                                    .collect();
+          .split("=")
+          .map(|s| s.trim())
+          .collect();
       if hole_entry.len() < 2 {
         continue;
       }
       hole_cfgs_map.insert (hole_entry[0].to_string(), 
                             hole_entry[1].to_string().parse::<i32>()
-                                                     .expect ("Error: hole value set to non-integer value"));
+                                .expect ("Error: hole value set to non-integer value"));
   }
   hole_cfgs_map
 }
@@ -55,31 +55,31 @@ fn init_state_vector (num_stateful_alus : i32,
   state
 }
 // Generate PHV and initialize state
-fn phv_generator (num_phvs : i32) -> Phv <i32>{
+fn phv_generator (num_phv_cons : i32) -> Phv <i32>{
 
   let num_stateful_alus = prog_to_run::num_stateful_alus();
   let num_state_values = prog_to_run::num_state_variables();
-  let mut phv : Phv<i32> = Phv::new();
-  (0..num_phvs)
+  let mut phv: Phv<i32> = Phv::new();
+  (0..num_phv_cons)
       .for_each ( |_| {
        phv.add_container_to_phv(PhvContainer {
-           field_value :rand::thread_rng().gen_range(0,100),
-       }); 
-     });
+           field_value: rand::thread_rng().gen_range(0,100),
+      }); 
+   });
          
-  (num_phvs..prog_to_run::pipeline_width())
+  (num_phv_cons..prog_to_run::pipeline_width())
       .for_each( |_| { 
           phv.add_container_to_phv (PhvContainer{
               field_value : 0,
           });
-      }); 
+    }); 
   let state = init_state_vector (num_stateful_alus, 
                                  num_state_values);
   phv.set_state(state);
   phv
 }
 
-fn execute_pipeline (num_phvs : i32,
+fn execute_pipeline (num_phv_cons : i32,
                      ticks : i32,
                      mut pipeline : Pipeline) {
 
@@ -91,7 +91,7 @@ fn execute_pipeline (num_phvs : i32,
   let mut output_phvs = Vec::new();
   // _t not used
   for t in 0..ticks {
-    let phv = phv_generator (num_phvs);  
+    let phv = phv_generator (num_phv_cons);  
     if t == 0 {
       println!("Initial state: {:?}", 
         phv.get_output_state_string()); 

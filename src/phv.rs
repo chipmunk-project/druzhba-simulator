@@ -12,7 +12,13 @@ pub type PacketFieldSet = Vec <String>;
 pub struct Phv<T> {
   pub bubble : bool, // false if initialized, true otherwise
   pub phv_containers : Vec<PhvContainer<T>>, // Vector of PHV Containers
-  pub state : Vec< Vec<i32> > // Initial state value
+  // Initial state value. Although state values aren't actually stored in PHVs,
+  // we do so for easy access to the state results after PHV execution.
+  // A pipeline stage writes the output state variables to the PHV so that
+  // they can be retrieved after the PHV leaves the pipeline.
+  // TODO: Remove state from PHV
+  pub state : Vec< Vec<i32> > 
+                              
 }
 
 

@@ -63,7 +63,7 @@ impl Pipeline {
                                    t_packet)
     }
     else{
-      let (first_initial_phv, first_result_phv) =                             self.pipeline_stages[0].tick(t_packet.clone(),
+      let (first_initial_phv, first_result_phv) = self.pipeline_stages[0].tick(t_packet.clone(),
                                        t_packet.clone());
 
       self.new_phvs.insert(0, first_result_phv);
