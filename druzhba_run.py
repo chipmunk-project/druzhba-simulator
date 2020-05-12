@@ -17,6 +17,7 @@ def run_dgen_unoptimized (args):
                       args[3], # Pipeline depth
                       args[4], # Pipeline width
                       args[5], # Stateful ALUs per stage
+                      '-v', 
                       args[6], # Constant vec
                       '-o prog_to_run.rs', # Output prog_to_run
                       ], stderr=FNULL)
@@ -48,11 +49,13 @@ def run_dgen_optimized (args):
                       args[3], # Pipeline depth
                       args[4], # Pipeline width
                       args[5], # Stateful ALUs per stage
+                      '-v',
                       args[6], # Constant vec
                       '-o prog_to_run.rs', # Output prog_to_run
-                      args[7], # Hole configurations
+                      '-m',
+                       args[7], # Hole configurations
                       ('-O' + args[10]), # Optimization level
-                      ],stderr=FNULL)
+                      ]) #,stderr=FNULL)
     subprocess.run(['rm',
                     'dgen_bin'])
     subprocess.run(['mv',
@@ -75,7 +78,7 @@ def rerun_dsim (args):
 
 def main ():
     argv = sys.argv
-    parser = argparse.ArgumentParser(description='dsim execution')
+    parser = argparse.ArgumentParser(description='Druzhba execution')
     parser.add_argument(
             'program_name', 
             type=str,
@@ -109,7 +112,7 @@ def main ():
             type=str,
             help='File path for the file containing the machine code assignments')
     parser.add_argument(
-            'num_phvs',
+            'num_phv_cons',
             type=int,
             help='Number of PHV containers to randomly initialize by traffic generator. Rest of PHV containers initialized with 0')
     parser.add_argument(
@@ -135,7 +138,7 @@ def main ():
     args.append(str(raw_args.num_stateful_alus))
     args.append(raw_args.constant_set)
     args.append(raw_args.hole_configs)
-    args.append(str(raw_args.num_phvs))
+    args.append(str(raw_args.num_phv_cons))
     args.append(str(raw_args.ticks))
     opt_level = raw_args.opt_level
     args.append(str(opt_level))

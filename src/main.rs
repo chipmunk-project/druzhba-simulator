@@ -123,7 +123,7 @@ fn main() {
   let matches = App::new("dsim")
       .version("1.0")
       .about("Hardware switch simulator for compiler testing")
-      .arg(Arg::with_name("containers")
+      .arg(Arg::with_name("num_phv_cons")
            .about("Number of PHV containers to be initialized by traffic generator")
            .index(1)
            .required(true)
@@ -136,13 +136,13 @@ fn main() {
       .arg(Arg::with_name("file")
         .short('f')
         .long("file")
-         .about("Path to file containing machine code pairs.")
+        .about("Path to file containing machine code pairs.")
         .takes_value(true)
         .required(false)
       ).get_matches();
 
   let num_phv_containers : i32 = 
-    match matches.value_of("containers") {
+    match matches.value_of("num_phv_cons") {
       Some (t_num_phv_containers) => match t_num_phv_containers.parse::<i32> () {
         Ok(value) => value,
         _  => panic!("Failure: Unable to unwrap num_phv_containers"),
