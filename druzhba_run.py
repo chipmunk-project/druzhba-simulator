@@ -50,7 +50,7 @@ def run_dsim(args):
              '-t',
              args[9],
              '-i',
-             args[7]] , stderr=FNULL)
+             args[7]])# , stderr=FNULL)
 
 def run_dgen_optimized (args):
     subprocess.run(['cp',
