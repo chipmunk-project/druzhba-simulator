@@ -648,7 +648,6 @@ fn update_func_count (key: String) {
 // variable corresponds to. The same is done with phv_containers.
 // For hole variables, make a call to generate_hole_name
 fn find_var_name (variable: String) -> String {
-  let optimize : i32 = *OPTIMIZED.read().unwrap();
   match STATE_VAR_MAP.read().unwrap().get(&variable){
     Some (ind1) => format!("state_vec[{}]",ind1),
     _           => {
@@ -659,7 +658,7 @@ fn find_var_name (variable: String) -> String {
             Some (_) => {
                 let hole_name = generate_hole_name (variable.clone());
                 if hole_name.contains("immediate") {
-                    generate_immediate(&variable);
+                    generate_immediate(&variable)
                 }
                 else {
                   format!("hole_vars[\"{}\"]", generate_hole_name (variable.clone()))
@@ -673,12 +672,12 @@ fn find_var_name (variable: String) -> String {
   }
 }
 
-fn geberate_immediate (variable: &str) -> String{
+fn generate_immediate (variable: &str) -> String{
 
     let optimize = *OPTIMIZED.read().unwrap();
     let tmp_const_vec = CONSTANT_VEC.read().unwrap();
     if optimize == 0 {
-      let name = generate_hole_name(variable.clone());
+      let name = generate_hole_name(variable.to_string());
       match tmp_const_vec.len() == 0 {
           true => format!("hole_vars[\"{}\"]", 
               name),
@@ -689,7 +688,7 @@ fn geberate_immediate (variable: &str) -> String{
     // Replace immediate with correct constant
     // vector value in stateless ALU
     else {
-      let name = generate_hole_name (variable.clone());
+      let name = generate_hole_name (variable.to_string());
       let hole_val = 
         match HOLE_VALS.read().unwrap().get(&name){
           Some (num) => *num,
