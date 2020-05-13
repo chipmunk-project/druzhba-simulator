@@ -51,7 +51,6 @@ impl fmt::Display for Alu {
           CONSTANT_VEC.write().unwrap().clear();
           HOLE_VALS.write().unwrap().clear();
           *OPTIMIZED.write().unwrap() = 0;
-    
         }
         
         match opt_header {
@@ -79,7 +78,6 @@ impl fmt::Display for Alu {
         let body = String::from(&format!("{}{}", header, stmt));
         let state_var_length = STATE_VAR_MAP.read().unwrap().len();
         let mut end = String::from("");
-        
         if state_var_length == 0 {
           end.push_str("    };\n   Box::new(alu)\n}\n"); 
         }
@@ -116,8 +114,6 @@ impl fmt::Display for Alu {
               0 => "(hole_vars : HashMap <String, i32>) -> Box <dyn Fn (&mut Vec <i32>, &Vec <PhvContainer <i32>>) -> (Vec <i32>, Vec <i32> ) >{\n",
               _ => "(_hole_vars : HashMap <String, i32>) -> Box <dyn Fn (&mut Vec <i32>, &Vec <PhvContainer <i32>>) -> (Vec <i32>, Vec <i32> ) >{\n",
             });
-
-        
         write!(f, "{}{}{}{}{}", outer_header, 
                                 inner_header, 
                                 constant_vec_string,
@@ -185,28 +181,37 @@ impl fmt::Display for Header {
           FUNC_COUNT.write().unwrap().insert("state".to_string(), 1);
         }
         else if s == "stateful"{
-
           FUNC_COUNT.write().unwrap().insert("state".to_string(), 0);
         }
-        
         if s == "stateless" && v1.len() > 0 {
           panic! ("State variables given to statelss ALU");
         }
         if v1.len() > 0 {
           for i in 0..v1.len(){
-            STATE_VAR_MAP.write().unwrap().insert( v1[i].clone(), i as i32);
+            STATE_VAR_MAP   
+                .write()
+                .unwrap()
+                .insert(v1[i].clone(), i as i32);
           }
         }
         if v2.len() > 0{
           for i in 0..v2.len(){
-            HOLE_VAR_MAP.write().unwrap().insert( v2[i].clone(), i as i32);
+            HOLE_VAR_MAP
+                .write()
+                .unwrap()
+                .insert(v2[i].clone(), i as i32);
           }
         }
         if v3.len() > 0 {
           for i in 0..v3.len() {
-            PHV_CONTAINER_MAP.write().unwrap().insert(v3[i].clone(), 
-                                                      i as i32);
-            FUNC_COUNT.write().unwrap().insert (v3[i].clone(), 0);
+            PHV_CONTAINER_MAP
+                .write()
+                .unwrap()
+                .insert(v3[i].clone(), i as i32);
+            FUNC_COUNT
+                .write()
+                .unwrap()
+                .insert(v3[i].clone(), 0);
           }
         }
         if v1.len() > 0 {
@@ -832,15 +837,15 @@ fn generate_mux2_optimized (mux3_name: String,
                             opcode : i32) {
   let fn_header = 
       format!("fn {}(op1 : i32, op2 : i32) -> i32{{\n", 
-              mux3_name);
+           mux3_name);
   let fn_body = 
       match opcode {
         0 => String::from("  op1\n}\n"),
         _ => String::from("  op2\n}\n"),
       };
   let mux2_fn = format!("{}{}", 
-                                 fn_header,
-                                 fn_body);
+       fn_header,
+       fn_body);
   HELPER_STRING.write().unwrap().push_str(&mux2_fn);
 }
 
@@ -866,7 +871,7 @@ fn generate_mux3_optimized (mux3_name: String,
                             opcode : i32) {
   let fn_header = 
       format!("fn {}(op1 : i32, op2 : i32, op3 : i32) -> i32{{\n", 
-              mux3_name);
+          mux3_name);
   let fn_body = 
       match opcode {
         0 => String::from("  op1\n}\n"),
@@ -874,8 +879,8 @@ fn generate_mux3_optimized (mux3_name: String,
         _ => String::from("  op3\n}\n"),
       };
   let mux3_fn = format!("{}{}", 
-                                 fn_header,
-                                 fn_body);
+      fn_header,
+      fn_body);
   HELPER_STRING.write().unwrap().push_str(&mux3_fn);
 }
 fn generate_mux3 (mux3_name: String)
@@ -890,8 +895,10 @@ fn generate_mux3 (mux3_name: String)
   let else_ret = String::from
       ("  else {\n  op3\n  }\n}\n");
 
-  let mux3_fn= format! ("{}{}{}{}", fn_header, 
-                                 if_ret, else_if_ret, else_ret);
+  let mux3_fn = format! ("{}{}{}{}", fn_header, 
+      if_ret, 
+      else_if_ret, 
+      else_ret);
 
   HELPER_STRING.write().unwrap().push_str (&mux3_fn);
 }
@@ -918,7 +925,7 @@ fn generate_rel_op (rel_op_name: String)
 {
   let fn_header = 
       format!("fn {} (op1 : i32, op2 : i32, opcode : i32) -> i32{{\n",
-              rel_op_name);
+          rel_op_name);
   
   let if_ret = String::from
       ("  if opcode == 0 {\n    (op1 != op2) as i32\n  }\n");
@@ -947,8 +954,8 @@ fn generate_arith_op_optimized (arith_op_name: String,
         _ => String::from("  op1 - op2\n}\n"),
       };
   let arith_op_fn = format!("{}{}", 
-                                     fn_header,
-                                     fn_body);
+       fn_header,
+       fn_body);
   HELPER_STRING.write().unwrap().push_str(&arith_op_fn);
 }
 
@@ -989,8 +996,8 @@ fn generate_constant_optimized (constant_name: String,
          }
       };
   let constant_fn = format!("{}{}", 
-                                     fn_header,
-                                     fn_body);
+       fn_header,
+       fn_body);
   HELPER_STRING.write().unwrap().push_str(&constant_fn);
 }
 
@@ -999,10 +1006,11 @@ fn generate_constant(constant_name: String)
   let fn_header = 
        format! ("fn {} (constant : i32) -> i32 {{\n",
            constant_name);
-  let temp_constant_vec : Vec <String> = CONSTANT_VEC.read()
-                                                     .unwrap()
-                                                     .clone();
-   let mut constant_vec : Vec <i32> = Vec::new();
+  let temp_constant_vec = CONSTANT_VEC
+      .read()
+      .unwrap()
+      .clone();
+   let mut constant_vec = Vec::new();
    for x in temp_constant_vec.iter(){
      constant_vec.push (x.parse::<i32>().unwrap());
    }
@@ -1037,7 +1045,7 @@ fn generate_opt(opt_name: String)
 {
   let fn_header =
       format! ("fn {} (op : i32, enable : i32) -> i32 {{\n",
-               opt_name);
+          opt_name);
   let if_ret = String::from
       ("  if enable != 0 {\n    0\n  }\n");
   let else_ret = String::from
