@@ -10,7 +10,6 @@ use druzhba::phv::Phv;
 use druzhba::phv_container::PhvContainer;
 use rand::Rng;
 use std::collections::HashMap;
-use std::env;
 use std::fs;
 use clap::{App, Arg};
 
