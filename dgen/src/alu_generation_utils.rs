@@ -85,45 +85,43 @@ pub fn generate_alus (name : String,
   // Contains all of the necessary use statements
   let file_imports : String = String::from ("use druzhba::phv_container::PhvContainer;\nuse druzhba::pipeline_stage::PipelineStage;\nuse druzhba::pipeline::Pipeline;\nuse druzhba::alu::ALU;\nuse druzhba::input_mux::InputMux;\nuse druzhba::output_mux::OutputMux;use druzhba::phv::Phv;\nuse std::collections::HashMap;\n");
 
-  let init_pipeline : String = 
-    match  hole_configs_file.is_empty() {
-      true =>  generate_init_pipeline (name.clone(), 
-                                       pipeline_depth, 
-                                       pipeline_width,
-                                       full_stateful_alu.get_number_of_operands(),
-                                       full_stateless_alu.get_number_of_operands(),
-                                       full_stateful_alu.get_number_of_state_variables(),
-                                       num_stateful_alus),
+  let init_pipeline = 
+    match hole_configs_file.is_empty() {
+      true => generate_init_pipeline (name.clone(), 
+           pipeline_depth, 
+           pipeline_width,
+           full_stateful_alu.get_number_of_operands(),
+           full_stateless_alu.get_number_of_operands(),
+           full_stateful_alu.get_number_of_state_variables(),
+           num_stateful_alus),
       false => generate_optimized_init_pipeline (name.clone(), 
-                                                 pipeline_depth, 
-                                                 pipeline_width,
-                                                 full_stateful_alu.get_number_of_operands(),
-                                                 full_stateless_alu.get_number_of_operands(),
-                                                 full_stateful_alu.get_number_of_state_variables(),
-                                                 num_stateful_alus,
-                                                 hole_configs_file.clone()),
+           pipeline_depth, 
+           pipeline_width,
+           full_stateful_alu.get_number_of_operands(),
+           full_stateless_alu.get_number_of_operands(),
+           full_stateful_alu.get_number_of_state_variables(),
+           num_stateful_alus,
+           hole_configs_file.clone()),
 
   };
-  let alu_data : String = generate_alu_data_functions (name.clone(), 
-                                                       pipeline_depth, 
-                                                       pipeline_width,
-                                                       full_stateful_alu.get_number_of_operands(),
-                                                       full_stateless_alu.get_number_of_operands(),
-                                                       full_stateful_alu.get_number_of_state_variables(),
-                                                       num_stateful_alus);
+  let alu_data = generate_alu_data_functions (name.clone(), 
+       pipeline_depth, 
+       pipeline_width,
+       full_stateful_alu.get_number_of_operands(),
+       full_stateless_alu.get_number_of_operands(),
+       full_stateful_alu.get_number_of_state_variables(),
+       num_stateful_alus);
   
   
 
   let file_string : String = format! ("{}{}{}{}", 
-                                      file_imports, 
-                                      alu_data,
-                                      pipeline_alus_string, 
-                                      init_pipeline);
+       file_imports, 
+       alu_data,
+       pipeline_alus_string, 
+       init_pipeline);
 
     fs::write(file_path, file_string)
       .expect("Error writing to prog_to_run.rs");
-
-
 }
 
 // Generates the init_pipeline() function in the prog_to_run.rs
@@ -338,7 +336,7 @@ fn generate_optimized_init_pipeline (name : String,
     for j in 0..num_stateful_alus {
       // init_alu function name
       let stateful_init_alu_name : String = format!("init_{}_stateful_alu_{}_{}", 
-                                                  &name, i, j);
+           &name, i, j);
 
       // Variable names
       let stateful_alu_name : String = format!("stateful_alu_{}_{}", i, j);
@@ -358,10 +356,10 @@ fn generate_optimized_init_pipeline (name : String,
         // Input mux ALU count value hardcoded to 0 because only
         // 1 stateful ALU per stage
         let input_mux_hole : String = format!("{}_stateful_operand_mux_{}_{}_{}_ctrl", 
-                                              &name, i, j, k);
+             &name, i, j, k);
         pipeline_stage.push_str (&format!("  {}.push (InputMux {{ input_phv : empty_phv.clone(), index : {} }});\n", 
-                                          stateful_input_muxes,
-                                          hole_vars[&input_mux_hole]));
+             stateful_input_muxes,
+             hole_vars[&input_mux_hole]));
       }
 
       pipeline_stage.push_str ("  // No hole variables for stateful ALU OutputMux\n");

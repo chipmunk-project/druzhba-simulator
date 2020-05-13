@@ -146,11 +146,11 @@ fn main() {
     let full_stateless_name = &stateless_alu_split[stateless_alu_split.len()-1].to_string();
     let stateless_name = &full_stateless_name[0..full_stateless_name.len()-4].to_string();
     let name : String = format!("{}_{}_{}_{}_{}", 
-                                spec_name,
-                                stateful_name,
-                                stateless_name,
-                                pipeline_depth,
-                                pipeline_width);
+         spec_name,
+         stateful_name,
+         stateless_name,
+         pipeline_depth,
+         pipeline_width);
 
     let opt_level = match matches
           .value_of("opti")
@@ -163,33 +163,33 @@ fn main() {
        
     if opt_level == 0 {
       alu_generation_utils::generate_alus (name, 
-                                           stateful_alu, 
-                                           stateless_alu, 
-                                           pipeline_depth, 
-                                           pipeline_width,
-                                           num_stateful_alus,
-                                           constant_vec,
-                                           file_path,
-                                           "".to_string(),
-                                           0);
+           stateful_alu, 
+           stateless_alu, 
+           pipeline_depth, 
+           pipeline_width,
+           num_stateful_alus,
+           constant_vec,
+           file_path,
+           "".to_string(),
+           0);
     }
     else {
 
       let machine_code_file : String = 
         match matches.value_of("input_file") {
           Some (s) => s.to_string(),
-          _        => panic!("Error: machine code file not provided"),
+          _        => panic!("Error: machine code file must be provided for optimized code generation"),
         };
       alu_generation_utils::generate_alus (name, 
-                                           stateful_alu, 
-                                           stateless_alu, 
-                                           pipeline_depth, 
-                                           pipeline_width,
-                                           num_stateful_alus,
-                                           constant_vec,
-                                           file_path,
-                                           machine_code_file,
-                                           opt_level);
+           stateful_alu, 
+           stateless_alu, 
+           pipeline_depth, 
+           pipeline_width,
+           num_stateful_alus,
+           constant_vec,
+           file_path,
+           machine_code_file,
+           opt_level);
     }
 }
 

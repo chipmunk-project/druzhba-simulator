@@ -124,38 +124,43 @@ fn main() {
       .version("1.0")
       .about("Hardware switch simulator for compiler testing")
       .arg(Arg::with_name("num_phv_cons")
+           .short('g')
+           .long("gen")
            .about("Number of PHV containers to be initialized by traffic generator")
-           .index(1)
-           .required(true)
+           .takes_value(true)
+           .required(false)
       )
       .arg(Arg::with_name("ticks")
+           .short('t')
+           .long("ticks")
            .about("Number of ticks to execute for. A PHV enters the pipeline at every tick.")
-           .index(2)
-           .required(true)
+           .takes_value(true)
+           .required(false)
       )
       .arg(Arg::with_name("input_file")
-        .short('i')
-        .long("input")
-        .about("Path to file containing machine code pairs.")
-        .takes_value(true)
-        .required(false)
+           .short('i')
+           .long("input")
+           .about("Path to file containing machine code pairs.")
+           .takes_value(true)
+           .required(false)
       ).get_matches();
 
-  let num_phv_containers : i32 = 
-    match matches.value_of("num_phv_cons") {
-      Some (t_num_phv_containers) => match t_num_phv_containers.parse::<i32> () {
-        Ok(value) => value,
-        _  => panic!("Failure: Unable to unwrap num_phv_containers"),
-      }
-      _ => panic!("Error: num_phv_containers not provided"),
-    };
-  let ticks: i32 = 
+  let num_phv_containers = 
+      match matches.value_of("num_phv_cons") {
+          Some (t_num_phv_containers) => 
+              match t_num_phv_containers.parse::<i32> () {
+                  Ok(value) => value, 
+                  _ => panic!("Error: Invalid num_phv_containers provided")
+          },
+       _ => prog_to_run::pipeline_width(),
+  };
+  let ticks = 
     match matches.value_of("ticks") {
       Some (t_ticks) => match t_ticks.parse::<i32> () {
         Ok(value) => value,
         _  => panic!("Failure: Unable to unwrap ticks"),
       }
-      _ => panic!("Error: num_phv_containers not provided"),
+      _ => 100,
     };
   let file = matches.value_of("input_file")
       .unwrap_or("")
