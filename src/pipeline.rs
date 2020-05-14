@@ -11,36 +11,36 @@ use std::fmt;
 */
 
 pub struct Pipeline {
-   pipeline_stages : Vec<PipelineStage>,
+   pipeline_stages: Vec<PipelineStage>,
    
    //Format : key = stage_number, value = PHV
    old_phvs: HashMap<usize, Phv<i32>>,
    new_phvs: HashMap<usize, Phv<i32>>,
-   old_initial_phvs : HashMap<usize, Phv<i32>>,
-   new_initial_phvs : HashMap<usize, Phv<i32>>
+   old_initial_phvs: HashMap<usize, Phv<i32>>,
+   new_initial_phvs: HashMap<usize, Phv<i32>>
 }
 
 impl Pipeline {
     
   pub fn new () -> Self {
     let stages : Vec <PipelineStage> = Vec::new();
-    Pipeline { pipeline_stages : stages, 
+    Pipeline { pipeline_stages: stages, 
                old_phvs: HashMap::new(), 
-               new_phvs : HashMap::new(),
-               old_initial_phvs : HashMap::new(),
-               new_initial_phvs : HashMap::new()}
+               new_phvs: HashMap::new(),
+               old_initial_phvs: HashMap::new(),
+               new_initial_phvs: HashMap::new()}
   }
 
-  pub fn with_pipeline_stages (t_pipeline_stages : Vec <PipelineStage>) -> Self {
+  pub fn with_pipeline_stages (t_pipeline_stages: Vec <PipelineStage>) -> Self {
     let mut empty_phvs : HashMap<usize, Phv<i32>> = HashMap::new();
     for i in 0..t_pipeline_stages.len(){
       empty_phvs.insert(i as usize, Phv::new());
     }
-    Pipeline { pipeline_stages : t_pipeline_stages, 
+    Pipeline { pipeline_stages: t_pipeline_stages, 
                old_phvs: empty_phvs.clone(), 
                new_phvs: empty_phvs.clone(),
-               old_initial_phvs : empty_phvs.clone(),
-               new_initial_phvs : empty_phvs.clone()}
+               old_initial_phvs: empty_phvs.clone(),
+               new_initial_phvs: empty_phvs.clone()}
 }
 
   pub fn len (&self) -> usize {
@@ -55,7 +55,11 @@ impl Pipeline {
   // stage. To calculate this for a phv leaving the pipeline,
   // get the stateful ALUs that change a state variable at each
   // stage and record the input state variable prior to modification
-  // that occurs when that phv gets executed.
+  // that occurs when that phv gets executed. This is done through
+  // the initial_phvs. Their PHV containers are not written to.
+  // Instead, prior to stateful ALU execution, write the existing
+  // state values to the initial_phv and then write resulting 
+  // state values to input_phv
   pub fn tick (&mut self, t_packet : Phv<i32>) -> (Phv<i32>, Phv<i32>) {
     if self.pipeline_stages.len() == 1{
       
