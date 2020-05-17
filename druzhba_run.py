@@ -98,6 +98,7 @@ def rerun_dsim (args):
          'dsim_bin'])
     with open(os.devnull, 'w') as FNULL:
       subprocess.run(['./dsim_bin',
+           '--',
            '-g',
            args[8],
            '-t',
