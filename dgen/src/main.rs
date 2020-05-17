@@ -15,58 +15,58 @@ fn main() {
     let matches = App::new("dgen")
       .version("1.0")
       .about("Code generator for Druzhba")
-      .arg(Arg::with_name("spec_name")
+      .arg(Arg::new("spec_name")
         .about("Name of input program")
         .index(1)
         .required(true)
       )
-      .arg(Arg::with_name("stateful_alu")
+      .arg(Arg::new("stateful_alu")
         .about("Path to stateful ALU file")
         .index(2)
         .required(true)
       )
-      .arg(Arg::with_name("stateless_alu")
+      .arg(Arg::new("stateless_alu")
         .about("Path to stateless ALU file")
         .index(3)
         .required(true)
       )
-      .arg(Arg::with_name("pipeline_depth")
+      .arg(Arg::new("pipeline_depth")
         .about("Depth of pipeline to simulate")
         .index(4)
         .required(true)
       )     
-      .arg(Arg::with_name("pipeline_width")
+      .arg(Arg::new("pipeline_width")
         .about("Width of pipeline to simulate")
         .index(5)
         .required(true)
       )
-      .arg(Arg::with_name("num_stateful_alus")
+      .arg(Arg::new("num_stateful_alus")
         .about("Number of stateful ALUs per stage")
         .index(6)
         .required(true)
       ) 
-      .arg(Arg::with_name("constant_vec")
+      .arg(Arg::new("constant_vec")
         .short('c')
         .long("constants")
         .about("Constant vector for Chipmunk")
         .takes_value(true)
         .required(false)
       )
-      .arg(Arg::with_name("input_file")
+      .arg(Arg::new("input_file")
         .short('i')
         .long("input")
         .about("Druzhba machine code (only required for optimzed code generation)")
         .takes_value(true)
         .required(false)
       )
-      .arg(Arg::with_name("output_file")
+      .arg(Arg::new("output_file")
         .short('o')
         .long("output")
         .about("Output generated file")
         .takes_value(true)
         .required(false)
       )
-      .arg(Arg::with_name("opti")
+      .arg(Arg::new("opti")
         .short('O')
         .long("opti")
         .about("Optimization level: 0, 1, or 2")
@@ -146,11 +146,11 @@ fn main() {
     let full_stateless_name = &stateless_alu_split[stateless_alu_split.len()-1].to_string();
     let stateless_name = &full_stateless_name[0..full_stateless_name.len()-4].to_string();
     let name : String = format!("{}_{}_{}_{}_{}", 
-                                spec_name,
-                                stateful_name,
-                                stateless_name,
-                                pipeline_depth,
-                                pipeline_width);
+         spec_name,
+         stateful_name,
+         stateless_name,
+         pipeline_depth,
+         pipeline_width);
 
     let opt_level = match matches
           .value_of("opti")
@@ -163,33 +163,33 @@ fn main() {
        
     if opt_level == 0 {
       alu_generation_utils::generate_alus (name, 
-                                           stateful_alu, 
-                                           stateless_alu, 
-                                           pipeline_depth, 
-                                           pipeline_width,
-                                           num_stateful_alus,
-                                           constant_vec,
-                                           file_path,
-                                           "".to_string(),
-                                           0);
+           stateful_alu, 
+           stateless_alu, 
+           pipeline_depth, 
+           pipeline_width,
+           num_stateful_alus,
+           constant_vec,
+           file_path,
+           "".to_string(),
+           0);
     }
     else {
 
       let machine_code_file : String = 
         match matches.value_of("input_file") {
           Some (s) => s.to_string(),
-          _        => panic!("Error: machine code file not provided"),
+          _        => panic!("Error: machine code file must be provided for optimized code generation"),
         };
       alu_generation_utils::generate_alus (name, 
-                                           stateful_alu, 
-                                           stateless_alu, 
-                                           pipeline_depth, 
-                                           pipeline_width,
-                                           num_stateful_alus,
-                                           constant_vec,
-                                           file_path,
-                                           machine_code_file,
-                                           opt_level);
+           stateful_alu, 
+           stateless_alu, 
+           pipeline_depth, 
+           pipeline_width,
+           num_stateful_alus,
+           constant_vec,
+           file_path,
+           machine_code_file,
+           opt_level);
     }
 }
 

@@ -46,8 +46,9 @@ impl ALU {
     // state_array. Mutates Phv in place with appropriate 
     // packet values. Once function is run, phv value should
     // be passed to the output mux. 
-    pub fn run (&mut self, packet_fields: &Vec<PhvContainer<i32>>) -> (Vec <i32>, Vec <i32>) {
-
+    pub fn run (&mut self, 
+                packet_fields: &Vec<PhvContainer<i32>>) 
+                -> (Vec <i32>, Vec <i32>) {
       (self.sequential_function) 
           (&mut self.state_variables,
            packet_fields
@@ -63,29 +64,29 @@ impl ALU {
         }
         packet_fields
     }
-    pub fn send_packets_to_input_muxes(&mut self, values : Phv<i32>) {
+    pub fn send_packets_to_input_muxes(&mut self, 
+                                       values: Phv<i32>) {
         for mux in &mut self.input_muxes{
           mux.input_phv = values.clone();   
         }
     }
     pub fn send_packets_to_output_mux(&mut self, values: &Vec<i32>) {
-      self.output_mux.swap_input_phv_containers (values);
+        self.output_mux.swap_input_phv_containers (values);
     }  
     pub fn is_stateful (&self) -> bool {
         self.is_stateful
     }
     pub fn set_state_variables (&mut self, 
-                                t_state_variables : Vec<i32>) {
-      self.state_variables = t_state_variables;
-
+                                t_state_variables: Vec<i32>) {
+        self.state_variables = t_state_variables;
     }
     pub fn get_state_varables (&self) -> Vec <i32> {
         self.state_variables.clone()
     }
     pub fn reset_state_variables (&mut self) {
-      for i in 0..self.state_variables.len() {
-        self.state_variables[i] = 0;
-      }
+        for i in 0..self.state_variables.len() {
+            self.state_variables[i] = 0;
+        }
     }
 }
 

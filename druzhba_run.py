@@ -44,7 +44,10 @@ def run_dsim(args):
     with open (os.devnull, 'w') as FNULL:
         subprocess.run(['cargo',
              'run',
+             '--',
+             '-g',
              args[8],
+             '-t',
              args[9],
              '-i',
              args[7]], stderr=FNULL)
@@ -95,7 +98,9 @@ def rerun_dsim (args):
          'dsim_bin'])
     with open(os.devnull, 'w') as FNULL:
       subprocess.run(['./dsim_bin',
+           '-g',
            args[8],
+           '-t',
            args[9],
            '-i',
            args[7]], stderr=FNULL)
@@ -130,27 +135,35 @@ def main ():
             type=int,
             help='Number of stateful ALUs per stage (number of state variables in spec)')
     parser.add_argument(
-             '-c',   
-             '--constants',
-             nargs='?', 
-             type=str,
-             default='',
-             help='Constant vector for Chipmunk')
+            '-c',   
+            '--constants',
+            nargs='?', 
+            type=str,
+            default='',
+            help='Constant vector for Chipmunk')
     parser.add_argument(
             'hole_configs',
             type=str,
             help='File path for the file containing the machine code assignments')
     parser.add_argument(
-            'num_phv_cons',
+            '-g',
+            '--gen',
             type=int,
+            default='0',
             help='Number of PHV containers to randomly initialize by traffic generator. Rest of PHV containers initialized with 0')
     parser.add_argument(
-            'ticks',
+            '-t',
+            '--ticks',
+            nargs='?',
             type=int,
+            default='100',
             help='Number of ticks')
     parser.add_argument(
-            'opt_level',
+            '-O',
+            '--opti',
+            nargs='?',
             type=int,
+            default='0',
             help='Number corresponding to optimization level (0 for unoptimized, 1 for sparse conditional constant propagation, 2 for inlining)')
     parser.add_argument(
              '-n', 
@@ -167,10 +180,13 @@ def main ():
     args.append(str(raw_args.num_stateful_alus))
     args.append(raw_args.constants)
     args.append(raw_args.hole_configs)
-    args.append(str(raw_args.num_phv_cons))
+    if raw_args.gen == 0:
+        args.append(str(raw_args.pipeline_width))
+    else:
+        args.append(str(raw_args.gen))
     args.append(str(raw_args.ticks))
-    opt_level = raw_args.opt_level
-    args.append(str(opt_level))
+    opti = raw_args.opti
+    args.append(str(opti))
     no_recompile = parser.parse_args().n
 
     if no_recompile:
@@ -178,7 +194,7 @@ def main ():
         rerun_dsim(args)
         exit(0)
 
-    elif opt_level == 0:
+    elif opti == 0:
         subprocess.run(['./build_dgen.sh'])
         print('dgen completed')
         print('Preparing dsim for execution (this may take a few minutes) ... ')
