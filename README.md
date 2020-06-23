@@ -76,34 +76,40 @@ To execute dgen alone (note that this is within the dgen directory):
 
     dgen -h
 
+    USAGE:
+            dgen [FLAGS] [OPTIONS] <spec_name> <stateful_alu> <stateless_alu> <pipeline_depth> <pipeline_width> <num_stateful_alus>
+
+    For more information try --help
+    mikewong@cyclops:~/druzhba-public/dgen$ ./dgen -h
     dgen 1.0
     Code generator for Druzhba
 
     USAGE:
-        dgen_bin [OPTIONS] <spec_name> <stateful_alu> <stateless_alu> <pipeline_depth> <pipeline_width> <num_stateful_alus> <constant_vec> [machine_code]
-
-    ARGS:
-        <spec_name>            Name of input program
-        <stateful_alu>         Path to stateful ALU file
-        <stateless_alu>        Path to stateless ALU file
-        <pipeline_depth>       Depth of pipeline to simulate
-        <pipeline_width>       Width of pipeline to simulate
-        <num_stateful_alus>    Number of stateful ALUs per stage
-        <constant_vec>         Constant vector for Chipmunk
-        <machine_code>         Druzhba machine code (only required for optimzed code generation)
+            dgen [FLAGS] [OPTIONS] <spec_name> <stateful_alu> <stateless_alu> <pipeline_depth> <pipeline_width> <num_stateful_alus>
 
     FLAGS:
         -h, --help       Prints help information
         -V, --version    Prints version information
 
     OPTIONS:
-        -O, --opti <opti>             Optimization level: 0, 1, or 2
-        -o, --output <output_file>    Output generated file
+        -c, --constants <constant_vec>    Constant vector for Chipmunk
+        -i, --input <input_file>          Druzhba machine code (only required for optimzed code generation)
+        -O, --opti <opti>                 Optimization level: 0, 1, or 2
+        -o, --output <output_file>        Output generated file
+
+    ARGS:
+        spec_name            Name of input program
+        stateful_alu         Path to stateful ALU file
+        stateless_alu        Path to stateless ALU file
+        pipeline_depth       Depth of pipeline to simulate
+        pipeline_width       Width of pipeline to simulate
+        num_stateful_alus    Number of stateful ALUs per stage
 
 Example:
 
     cd dgen
-    cargo run simple ../example_alus/stateful_alus/raw.alu ../example_alus/stateless_alus/stateless_alu.alu 2 2 1 "0,1,2,3"  -o ../src/prog_to_run.rs 
+    cargo run simple ../example_alus/stateful_alus/raw.alu ../example_alus/stateless_alus/stateless_alu.alu 2 2 1 -c 0,1,2,3 -i ../hole_configurations/simple_raw_stateless_alu_2_2_hole_cfgs.txt -O2 
+    cd ..
 
 
 The output will be a Rust file containing the pipeline description to be simulated. To compile with dsim, rename the file to 
@@ -117,23 +123,21 @@ To execute dsim:
     Hardware switch simulator for compiler testing
 
     USAGE:
-        dsim [OPTIONS] <containers> <ticks>
-
-    ARGS:
-        <containers>    Number of PHV containers to be initialized by traffic generator
-        <ticks>         Number of ticks to execute for. A PHV enters the pipeline at every tick.
+            druzhba [FLAGS] [OPTIONS]
 
     FLAGS:
         -h, --help       Prints help information
         -V, --version    Prints version information
 
     OPTIONS:
-        -f, --file <file>    Path to file containing machine code pairs.
+        -i, --input <input_file>    Path to file containing machine code pairs.
+        -g, --gen <num_phv_cons>    Number of PHV containers to be initialized by traffic generator
+        -t, --ticks <ticks>         Number of ticks to execute for. A PHV enters the pipeline at every tick.
 
 
 Example:
 
-    cargo run 1 20 -f hole_configurations/simple_raw_stateless_alu_2_2_hole_cfgs.txt 2>/dev/null
+    cargo run -- -g 1 -t 20 2>/dev/null
 
 
 If optimizations are desired (using -O1 or -O2 in dgen), the machine code is fed into dgen instead of dsim.
@@ -173,21 +177,13 @@ To run these tests:
 
 Simulating marple_tcp_nmo:
 
-    python3 druzhba_run.py marple_tcp_nmo_equivalent_1_canonicalizer_equivalent_0 example_alus/stateful_alus/pred_raw.alu example_alus/stateless_alus/stateless_alu.alu 3 2 2 "0,1,2,3" hole_configurations/marple_tcp_nmo_equivalent_1_canonicalizer_equivalent_0_pred_raw_stateless_alu_3_2_hole_cfgs.txt 1 20 2
+    python3 druzhba_run.py marple_tcp_nmo_equivalent_1_canonicalizer_equivalent_0 example_alus/stateful_alus/pred_raw.alu example_alus/stateless_alus/stateless_alu.alu 3 2 2  hole_configurations/marple_tcp_nmo_equivalent_1_canonicalizer_equivalent_0_pred_raw_stateless_alu_3_2_hole_cfgs.txt -g 1 -t 20 -O2
 
 Simulating blue_increase:
 
-    python3 druzhba_run.py blue_increase_equivalent_2_canonicalizer_equivalent_0 example_alus/stateful_alus/pred_raw.alu example_alus/stateless_alus/stateless_alu_arith.alu 4 2 2 "11,21,10,12,0,3,1,2,10,2,1"  hole_configurations/blue_increase_equivalent_2_canonicalizer_equivalent_0_pred_raw_stateless_alu_arith_4_2_hole_cfgs.txt 2 10 2
+    python3 druzhba_run.py blue_increase_equivalent_2_canonicalizer_equivalent_0 example_alus/stateful_alus/pred_raw.alu example_alus/stateless_alus/stateless_alu_arith.alu 4 2 2  hole_configurations/blue_increase_equivalent_2_canonicalizer_equivalent_0_pred_raw_stateless_alu_arith_4_2_hole_cfgs.txt -g 2 -t 10 -O2 -c "11,21,10,12,0,3,1,2,10,2,1"
 
 Simulating snap_heavy_hitter:
 
-    python3 druzhba_run.py snap_heavy_hitter example_alus/stateful_alus/pair.alu example_alus/stateless_alus/stateless_alu.alu 2 3  1 "0,1,2,3,999,997,1002,1000,4"  hole_configurations/snap_heavy_hitter_pair_stateless_alu_2_3_hole_cfgs.txt 1 20 2
-
-Simulating times two:
-
-    python3 druzhba_run.py times_two example_alus/stateful_alus/sub.alu example_alus/stateless_alus/stateless_alu_arith.alu 3 3 1 "0,1,2,3"  hole_configurations/times_two_sub_stateless_alu_arith_3_3_hole_cfgs.txt 1 100 1
-
-Simulating test algorithm:
-
-    python3 druzhba_run.py test example_alus/stateful_alus/if_else_raw.alu example_alus/stateless_alus/stateless_alu_arith_rel_cond.alu 4 4 2 "0,1,2,3"  hole_configurations/test_if_else_raw_stateless_alu_arith_rel_cond_4_4_hole_cfgs.txt 3 100 1
+   python3 druzhba_run.py snap_heavy_hitter example_alus/stateful_alus/pair.alu example_alus/stateless_alus/stateless_alu.alu 2 3 1 hole_configurations/snap_heavy_hitter_pair_stateless_alu_2_3_hole_cfgs.txt -g 1 -c "0,1,2,3,999,997,1002,1000,4" 
 
