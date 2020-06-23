@@ -20,7 +20,11 @@ pipeline to be simulated and ```dsim``` uses this file to model the pipeline's f
 
     ```rustup default nightly```
 
-4. You're good to go! 
+4. Run
+    
+    ```chmod +x build_dgen.sh```
+
+5. You're good to go! 
 
 # Usage
 
@@ -63,7 +67,8 @@ To easily execute Druzhba use druzhba_run.py (this will execute both ```dgen``` 
 
 
 Example:
-python3 druzhba_run.py simple example_alus/stateful_alus/raw.alu example_alus/stateless_alus/stateless_alu.alu 2 2 1  hole_configurations/simple_raw_stateless_alu_2_2_hole_cfgs.txt -c "0,1,2,3"  -t 50 -g 1 -O1
+
+    python3 druzhba_run.py simple example_alus/stateful_alus/raw.alu example_alus/stateless_alus/stateless_alu.alu 2 2 1  hole_configurations/simple_raw_stateless_alu_2_2_hole_cfgs.txt -c "0,1,2,3"  -t 50 -g 1 -O1
 
 More examples can be found at the bottom. Note: the -n recompile flag should be used if you have already compiled ```dsim``` previously and would like to rerun it without recompiling.
 This is especially useful if machine code pairs are to be swapped for unoptimized Druzhba executions 
