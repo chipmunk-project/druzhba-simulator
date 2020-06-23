@@ -7,22 +7,24 @@
 Druzhba is a hardware switch simulator for testing compilers targeting programmable switches.
 High level programs compiled to Druzhba's instruction set can be simulated, testing
 the abilities for these compilers to map programs to switch hardware primitives. Druzhba enables 
-simulation through 2 components: dgen and dsim. dgen generates a Rust file corresponding to the
-pipeline to be simulated and dsim uses this file to model the pipeline's feedforward behavior.
+simulation through 2 components: ```dgen``` and ```dsim```. ```dgen``` generates a Rust file corresponding to the
+pipeline to be simulated and ```dsim``` uses this file to model the pipeline's feedforward behavior.
 
 # Installation
 
 1. Install ```rust``` 
 
-2. Clone this repo. Note: rust nightly may need to be enabled:
+2. Clone this repo. 
+
+3. ```rust nightly``` may need to be enabled:
 
     ```rustup default nightly```
 
-3. You're good to go! 
+4. You're good to go! 
 
 # Usage
 
-To easily execute Druzhba use druzhba_run.py (this will execute both dgen and dsim):
+To easily execute Druzhba use druzhba_run.py (this will execute both ```dgen``` and ```dsim```):
 
     python3 druzhba_run.py  -h
     usage: druzhba_run.py [-h] [-c [CONSTANTS]] [-g GEN] [-t [TICKS]] [-O [OPTI]]
@@ -63,22 +65,17 @@ To easily execute Druzhba use druzhba_run.py (this will execute both dgen and ds
 Example:
 python3 druzhba_run.py simple example_alus/stateful_alus/raw.alu example_alus/stateless_alus/stateless_alu.alu 2 2 1  hole_configurations/simple_raw_stateless_alu_2_2_hole_cfgs.txt -c "0,1,2,3"  -t 50 -g 1 -O1
 
-More examples can be found at the bottom. Note: the -n recompile flag should be used if you have already compiled dsim previously and would like to rerun it without recompiling.
+More examples can be found at the bottom. Note: the -n recompile flag should be used if you have already compiled ```dsim``` previously and would like to rerun it without recompiling.
 This is especially useful if machine code pairs are to be swapped for unoptimized Druzhba executions 
 or if the program is to be run with a different number of ticks. 
 If the recompile flag is turned
-on for a new pipeline configuration (e.g. different stateful ALU or pipeline dimensions) this will not work; dgen will need to be run again
-and the resulting file needs to be compiled with dsim.
+on for a new pipeline configuration (e.g. different stateful ALU or pipeline dimensions) this will not work; ```dgen``` will need to be run again
+and the resulting file needs to be compiled with ```dsim```.
 
-To execute dgen alone (note that this is within the dgen directory):
+To execute ```dgen``` alone (note that this is within the ```dgen``` directory):
 
     dgen -h
 
-    USAGE:
-            dgen [FLAGS] [OPTIONS] <spec_name> <stateful_alu> <stateless_alu> <pipeline_depth> <pipeline_width> <num_stateful_alus>
-
-    For more information try --help
-    mikewong@cyclops:~/druzhba-public/dgen$ ./dgen -h
     dgen 1.0
     Code generator for Druzhba
 
@@ -110,10 +107,10 @@ Example:
     cd ..
 
 
-The output will be a Rust file containing the pipeline description to be simulated. To compile with dsim, rename the file to 
+The output will be a Rust file containing the pipeline description to be simulated. To compile with ```dsim```, rename the file to 
 prog_to_run.rs and move it into the src directory.
 
-To execute dsim:
+To execute ```dsim```:
 
     dsim -h
 
@@ -138,9 +135,9 @@ Example:
     cargo run -- -g 1 -t 20 2>/dev/null
 
 
-If optimizations are desired (using -O1 or -O2 in dgen), the machine code is fed into dgen instead of dsim.
+Machine code file can be given to ```dsim``` instead of ```dgen``` if more flexibility is desired by not having to rerun ```dgen``` and recompile ```dsim``` but optimizations would not be able to be used.
 
-The above example directs STDERR to null device due to compiler warnings from test generated dgen files. Many of these warnings 
+The above example directs STDERR to null device due to compiler warnings from test generated ```dgen``` files. Many of these warnings 
 are either unavoidable or helpful for readibilty. While some can be fixed we leave that to future work due to the tediousness 
 of the task. 
 
@@ -148,7 +145,7 @@ of the task.
 
 Tests will ensure the druhzba pipeline is outputting
 the correct packets relative to the input packets
-given to the pipeline. Run dgen first to get a 
+given to the pipeline. Run ```dgen``` first to get a 
 prog_to_run.rs file in src first. Otherwise the simulator
 won't compile. 
 
@@ -160,7 +157,7 @@ To run benchmarks:
 
     ./build_dgen.sh && cargo bench
 
-Similarly, the dgen tests ensure that the alu grammar
+Similarly, the ```dgen``` tests ensure that the alu grammar
 is being parsed correctly and that the ast is being
 generated properly. 
 
