@@ -26,42 +26,44 @@ pipeline to be simulated and dsim uses this file to model the pipeline's feedfor
 
 To easily execute Druzhba use druzhba_run.py (this will execute both dgen and dsim):
 
-    python3 druzhba_run.py -h
+    python3 druzhba_run.py  -h
+    usage: druzhba_run.py [-h] [-c [CONSTANTS]] [-g GEN] [-t [TICKS]] [-O [OPTI]]
+                          [-n]
+                          program_name stateful_alu stateless_alu pipeline_depth
+                          pipeline_width num_stateful_alus hole_configs
 
-    usage: druzhba_run.py [-h] [-n]
-                          program_name stateful_alu stateless_alu
-                          pipeline_depth pipeline_width num_stateful_alus
-                          constant_set hole_configs num_phvs ticks opt_level
-
-    dsim execution
+    Druzhba execution
 
     positional arguments:
-      program_name       Program spec name
-      stateful_alu       Path to stateful ALU file
-      stateless_alu      Path to stateless ALU file
-      pipeline_depth     Depth of pipeline
-      pipeline_width     Width of pipeline
-      num_stateful_alus  Number of stateful ALUs per stage (number of state
-                         variables in spec)
-      constant_set       Constant vector
-      hole_configs       File path for the file containing the machine code
-                         assignments
-      num_phvs           Number of PHV containers to randomly initialize by
-                         traffic generator. Rest of PHV containers initialized
-                         with 0
-      ticks              Number of ticks
-      opt_level          Number corresponding to optimization level (0 for
-                         unoptimized, 1 for sparse conditional constant
-                         propagation, 2 for inlining)
+      program_name          Program spec name
+      stateful_alu          Path to stateful ALU file
+      stateless_alu         Path to stateless ALU file
+      pipeline_depth        Depth of pipeline
+      pipeline_width        Width of pipeline
+      num_stateful_alus     Number of stateful ALUs per stage (number of state
+                            variables in spec)
+      hole_configs          File path for the file containing the machine code
+                            assignments
 
     optional arguments:
-      -h, --help         show this help message and exit
-      -n                 Set if attempting to simulate the previous configuration
-                         to prevent recompiling dsim
+      -h, --help            show this help message and exit
+      -c [CONSTANTS], --constants [CONSTANTS]
+                            Constant vector for Chipmunk
+      -g GEN, --gen GEN     Number of PHV containers to randomly initialize by
+                            traffic generator. Rest of PHV containers initialized
+                            with 0
+      -t [TICKS], --ticks [TICKS]
+                            Number of ticks
+      -O [OPTI], --opti [OPTI]
+                            Number corresponding to optimization level (0 for
+                            unoptimized, 1 for sparse conditional constant
+                            propagation, 2 for inlining)
+      -n                    Set if attempting to simulate the previous
+                            configuration to prevent recompiling dsim
+
 
 Example:
-
-    python3 druzhba_run.py simple example_alus/stateful_alus/raw.alu example_alus/stateless_alus/stateless_alu.alu 2 2 1 "0,1,2,3" hole_configurations/simple_raw_stateless_alu_2_2_hole_cfgs.txt 1 100 1
+python3 druzhba_run.py simple example_alus/stateful_alus/raw.alu example_alus/stateless_alus/stateless_alu.alu 2 2 1  hole_configurations/simple_raw_stateless_alu_2_2_hole_cfgs.txt -c "0,1,2,3"  -t 50 -g 1 -O1
 
 More examples can be found at the bottom. Note: the -n recompile flag should be used if you have already compiled dsim previously and would like to rerun it without recompiling.
 This is especially useful if machine code pairs are to be swapped for unoptimized Druzhba executions 
