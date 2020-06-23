@@ -1,7 +1,5 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/8bmj5q0xotaa9xe8/branch/master?svg=true)](https://ci.appveyor.com/project/mdw362/druzhba-public/branch/master)
  
-Note: README is outdated, will be updated soon. In the meantime, for usage instrucions run ```python3 druzhba_run.py -h```. If you need any help, feel free to reach out
-
 # `Druzhba`
 
 # Overview
@@ -14,7 +12,7 @@ pipeline to be simulated and dsim uses this file to model the pipeline's feedfor
 
 # Installation
 
-1. Install rust 
+1. Install ```rust``` 
 
 2. Clone this repo. Note: rust nightly may need to be enabled:
 
@@ -185,5 +183,6 @@ Simulating blue_increase:
 
 Simulating snap_heavy_hitter:
 
-   python3 druzhba_run.py snap_heavy_hitter example_alus/stateful_alus/pair.alu example_alus/stateless_alus/stateless_alu.alu 2 3 1 hole_configurations/snap_heavy_hitter_pair_stateless_alu_2_3_hole_cfgs.txt -g 1 -c "0,1,2,3,999,997,1002,1000,4" 
+    python3 druzhba_run.py snap_heavy_hitter example_alus/stateful_alus/pair.alu example_alus/stateless_alus/stateless_alu.alu 2 3 1 hole_configurations/snap_heavy_hitter_pair_stateless_alu_2_3_hole_cfgs.txt -g 1 -c "0,1,2,3,999,997,1002,1000,4"
+
 
