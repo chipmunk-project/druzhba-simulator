@@ -123,7 +123,7 @@ To execute ```dsim```:
     Hardware switch simulator for compiler testing
 
     USAGE:
-            druzhba [FLAGS] [OPTIONS]
+            dsim [FLAGS] [OPTIONS]
 
     FLAGS:
         -h, --help       Prints help information
