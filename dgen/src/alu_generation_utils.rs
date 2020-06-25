@@ -281,7 +281,7 @@ fn generate_init_pipeline (name: String,
    pipeline_stage.push_str (&output_mux_globals);
     // Initialize pipeline stage
     pipeline_stage.push_str 
-        (&format!("  let pipeline_stage_{} = PipelineStage {{stateful_alus: {}, stateless_alus: {} , salu_configs: {}, output_mux_globals: {},  }};\n",
+        (&format!("  let pipeline_stage_{} = PipelineStage {{stateful_alus: {}, stateless_alus: {} , salu_configs: {}, output_mux_globals: {}, state_container: Vec::new() }};\n",
                   i, 
                   stateful_alus_vec, 
                   stateless_alus_vec,
@@ -459,7 +459,7 @@ fn generate_optimized_init_pipeline (name: String,
    pipeline_stage.push_str (&output_mux_globals);
     // Initialize pipeline stage
     pipeline_stage.push_str 
-        (&format!("  let pipeline_stage_{} = PipelineStage {{stateful_alus: {}, stateless_alus: {}, salu_configs: {}, output_mux_globals: {}, }};\n",
+        (&format!("  let pipeline_stage_{} = PipelineStage {{stateful_alus: {}, stateless_alus: {}, salu_configs: {}, output_mux_globals: {}, state_container : Vec::new() }};\n",
                   i, 
                   stateful_alus_vec, 
                   stateless_alus_vec,
