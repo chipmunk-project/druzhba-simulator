@@ -12,15 +12,15 @@ pipeline to be simulated and ```dsim``` uses this file to model the pipeline's f
 
 # Installation
 
-1. Install ```rust``` 
+1. Install ```rust```. For Unix-like OS run ```curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh```. If further help is needed, please see https://www.rust-lang.org/tools/install.
 
-2. Clone this repo. 
-
-3. ```rust nightly``` may need to be enabled:
+2. Enable ```rust nightly```:
 
     ```rustup default nightly```
 
-4. Run
+3. Clone this repo. 
+
+4. Ensure ```build_dgen.sh``` is executable:
     
     ```chmod +x build_dgen.sh```
 
