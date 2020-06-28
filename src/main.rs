@@ -141,6 +141,13 @@ fn execute_pipeline (num_phv_cons: i32,
                .help("Path to file containing machine code pairs.")
                .takes_value(true)
                .required(false)
+          )
+          .arg(Arg::with_name("state_vector")
+               .short("s")
+               .long("state")
+               .help("Initial value of state variables")
+               .takes_value(true)
+               .required(false)
           ).get_matches();
     
       let num_phv_containers = 
