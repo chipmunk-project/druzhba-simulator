@@ -86,7 +86,6 @@ fn strip_curly_braces_from_str <'a> (s: &'a str) -> &'a str {
 }
 fn ret_vec_str_elements(s: &str) -> Vec<i32> {
     let vec: Vec<i32> = s.split(",").map(|n|  {
-        println!("Looking at elem {}", n);
         match n.trim().parse::<i32> () {
             Ok(val) => val,
              _  => {
