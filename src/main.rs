@@ -68,17 +68,61 @@ fn phv_generator (num_phv_cons: i32) -> Phv <i32>{
            
     (num_phv_cons..prog_to_run::pipeline_width())
         .for_each( |_| { 
-            phv.add_container_to_phv (PhvContainer{
+            phv.add_container_to_phv (PhvContainer {
                 field_value : 0,
             });
-      }); 
+        }); 
     let state = init_state_vector (num_stateful_alus, 
          num_state_values);
     phv.set_state(state);
     phv
+        
+}
+fn strip_curly_braces_from_str <'a> (s: &'a str) -> &'a str {
+
+    let begin_idx = s.find('{').unwrap();
+    let end_idx = s.rfind('}').unwrap();
+    &s[begin_idx + 1..end_idx]
 }
 
+fn convert_init_state_vector_str (init_state_vector_str: &str) -> Vec<Vec<i32>>{
+    if init_state_vector_str.contains("{}") 
+    || !init_state_vector_str.contains("{") 
+    || !init_state_vector_str.contains("}") {
+        return Vec::new();
+    }
+    let stripped_vec_str = strip_curly_braces_from_str(init_state_vector_str);
+    println!("new str: {}", stripped_vec_str); 
+
+    let group_len = prog_to_run::num_stateful_alus() as usize;
+    let state_len = prog_to_run::num_state_variables() as usize;
+
+    let state_vec: Vec<Vec<i32>> = stripped_vec_str
+        .split(",")
+        .map(|s| {
+            let stripped_vec_str = strip_curly_braces_from_str(s);
+            let vec: Vec<i32> = stripped_vec_str.split(",").map(|n| 
+                match n.trim().parse::<i32> () {
+                    Ok(val) => val,
+                     _  => panic!("Failure: state vector elements invalid"),
+                }
+            ).collect();
+            if vec.len() != state_len {
+                panic!("Failure: state vector sizes are invalid");
+            }
+            vec
+        }).collect();
+     
+    if state_vec.len() != group_len {
+        panic!("Failure: state vector sizes are invalid");
+    }
+    else {
+        println!("Initial state vec: {:?}", state_vec);
+        state_vec
+    }
+}
 fn execute_pipeline (num_phv_cons: i32,
+                     init_state_vec: Vec<Vec<i32>>,
                      ticks: i32,
                      mut pipeline: Pipeline) {
 
@@ -91,16 +135,19 @@ fn execute_pipeline (num_phv_cons: i32,
     let mut state_string = "".to_string();
     // _t not used
     for t in 0..ticks {
-        let phv = phv_generator(num_phv_cons);  
+        let mut phv = phv_generator(num_phv_cons);  
         if t == 0 {
+            if init_state_vec.len() > 0 {
+                phv.set_state(init_state_vec.clone());
+            }
             state_string = phv.get_state_string();
             println!("Initial state values: {}", state_string);
         }
-        let updated_phv_pair = pipeline.tick (phv);
+        let updated_phv_pair = pipeline.tick(phv);
         let updated_input_phv = updated_phv_pair.0;
         let output_phv = updated_phv_pair.1;
         if !output_phv.is_bubble() {
-          input_phvs.push((t+1-prog_to_run::pipeline_depth(), 
+          input_phvs.push((t + 1 - prog_to_run::pipeline_depth(), 
             updated_input_phv.clone()));
           output_phvs.push((t, output_phv.clone()));
         }
@@ -118,9 +165,10 @@ fn execute_pipeline (num_phv_cons: i32,
   
   #[warn(unused_imports)]
     fn main() {
+
       let matches = App::new("dsim")
           .version("1.0")
-          .about("Hardware switch simulator for compiler testing")
+          .about("Hardware switch simulator")
           .arg(Arg::with_name("num_phv_cons")
                .short("g")
                .long("gen")
@@ -142,7 +190,7 @@ fn execute_pipeline (num_phv_cons: i32,
                .takes_value(true)
                .required(false)
           )
-          .arg(Arg::with_name("state_vector")
+          .arg(Arg::with_name("init_state_vector")
                .short("s")
                .long("state")
                .help("Initial value of state variables")
@@ -167,23 +215,33 @@ fn execute_pipeline (num_phv_cons: i32,
               }
               _ => 100,
           };
+
       let file = matches.value_of("input_file")
           .unwrap_or("")
           .trim()
           .to_string();
-    
+
+      let init_state_vector_str = 
+          match matches.value_of("init_state_vector") {
+              Some(s) => s,
+              _     => "{}",
+          };
+   
       assert! (ticks >= 1);
       assert! (prog_to_run::num_stateful_alus()>=1);
       println!("File: {}", file);
-      let pipeline : Pipeline = 
-          match file.as_str() {
-             "" => prog_to_run::init_pipeline(HashMap::new()),
-             _  => prog_to_run::init_pipeline(
-                     extract_hole_cfgs(file.to_string())
-              ),
-          };
+      let pipeline = match file.as_str() {
+           "" => prog_to_run::init_pipeline(HashMap::new()),
+           _  => prog_to_run::init_pipeline(
+                   extract_hole_cfgs(file.to_string())
+            ),
+      };
+      let init_state_vector = convert_init_state_vector_str(init_state_vector_str);
       println!("Executing pipeline");
-      execute_pipeline (num_phv_containers, ticks, pipeline);
+      execute_pipeline (num_phv_containers, 
+          init_state_vector, 
+          ticks, 
+          pipeline);
 }
 #[cfg(test)]
 mod test_druzhba;
