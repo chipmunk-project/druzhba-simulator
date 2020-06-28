@@ -84,40 +84,52 @@ fn strip_curly_braces_from_str <'a> (s: &'a str) -> &'a str {
     let end_idx = s.rfind('}').unwrap();
     &s[begin_idx + 1..end_idx]
 }
+fn ret_vec_str_elements(s: &str) -> Vec<i32> {
+    let vec: Vec<i32> = s.split(",").map(|n|  {
+        println!("Looking at elem {}", n);
+        match n.trim().parse::<i32> () {
+            Ok(val) => val,
+             _  => {
+                println!("Failure: state vector elements invalid");
+                panic!("Failure: state vector elements invalid")
+            }
+        }
+    }).collect();
+
+    let state_len = prog_to_run::num_state_variables() as usize;
+    match vec.len() == state_len {
+        true => vec,
+        _ => {
+            println!("Failure: state vector has incorrect size invalid");
+            panic!("Failure: state vector has incorrect size")
+
+        }
+    }
+}
 
 fn convert_init_state_vector_str (init_state_vector_str: &str) -> Vec<Vec<i32>>{
     if init_state_vector_str.contains("{}") 
     || !init_state_vector_str.contains("{") 
     || !init_state_vector_str.contains("}") {
+        println!("Improper state variables provided. Initializing random values");
         return Vec::new();
     }
     let stripped_vec_str = strip_curly_braces_from_str(init_state_vector_str);
-    println!("new str: {}", stripped_vec_str); 
-
     let group_len = prog_to_run::num_stateful_alus() as usize;
-    let state_len = prog_to_run::num_state_variables() as usize;
 
-    let state_vec: Vec<Vec<i32>> = stripped_vec_str
-        .split(",")
-        .map(|s| {
-            let stripped_vec_str = strip_curly_braces_from_str(s);
-            let vec: Vec<i32> = stripped_vec_str.split(",").map(|n| 
-                match n.trim().parse::<i32> () {
-                    Ok(val) => val,
-                     _  => panic!("Failure: state vector elements invalid"),
-                }
-            ).collect();
-            if vec.len() != state_len {
-                panic!("Failure: state vector sizes are invalid");
-            }
-            vec
-        }).collect();
-     
+    let mut slice = stripped_vec_str;
+    let mut state_vec = Vec::new();
+    while slice.contains("{") && slice.contains("}"){
+        let vec = ret_vec_str_elements(&slice
+            [slice.find("{").unwrap() + 1..slice.find("}").unwrap()]);
+        state_vec.push(vec);
+        slice = &slice[slice.find("}").unwrap() + 1..];
+    }
     if state_vec.len() != group_len {
+        println!("Failure: state vector sizes are invalid");
         panic!("Failure: state vector sizes are invalid");
     }
     else {
-        println!("Initial state vec: {:?}", state_vec);
         state_vec
     }
 }
@@ -163,7 +175,7 @@ fn execute_pipeline (num_phv_cons: i32,
         state_string);
 }
   
-  #[warn(unused_imports)]
+    #[warn(unused_imports)]
     fn main() {
 
       let matches = App::new("dsim")
@@ -203,7 +215,10 @@ fn execute_pipeline (num_phv_cons: i32,
               Some (t_num_phv_containers) => 
                   match t_num_phv_containers.parse::<i32> () {
                       Ok(value) => value, 
-                      _ => panic!("Error: Invalid num_phv_containers provided")
+                      _ => {
+                          println!("Error: Invalid num_phv_containers provided");
+                          panic!("Error: Invalid num_phv_containers provided")
+                      },
               },
            _ => prog_to_run::pipeline_width(),
       };
@@ -211,7 +226,10 @@ fn execute_pipeline (num_phv_cons: i32,
           match matches.value_of("ticks") {
               Some (t_ticks) => match t_ticks.parse::<i32> () {
                   Ok(value) => value,
-                  _  => panic!("Failure: Unable to unwrap ticks"),
+                  _  => {
+                      println!("Failure: Unable to unwrap ticks");
+                      panic!("Failure: Unable to unwrap ticks")
+                  },
               }
               _ => 100,
           };
