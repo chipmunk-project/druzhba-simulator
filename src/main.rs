@@ -20,9 +20,14 @@ fn extract_hole_cfgs (hole_cfgs_file: String) -> HashMap <String, i32> {
 
     println!("Extracting machine code pairs");
     let mut hole_cfgs_map: HashMap <String, i32> = HashMap::new();
-    let hole_cfgs_file_contents: String = fs::read_to_string(hole_cfgs_file.to_string())
-          .expect (&format!("Error: Hole configs file {} could not be found",
-                  hole_cfgs_file));
+    let hole_cfgs_file_contents: String = 
+        match fs::read_to_string(hole_cfgs_file.to_string()) {
+            Ok(f) => f,
+            _ => {
+                println!("Error: Hole configs file {} could not be found", hole_cfgs_file);
+                panic!("Error: Hole configs file {} could not be found", hole_cfgs_file)
+            },
+        };
     let hole_cfgs_file_vec: Vec <String> = hole_cfgs_file_contents
         .split ("\n")
         .map (|s| s.to_string())

@@ -155,7 +155,7 @@ Machine code file can be given to ```dsim``` instead of ```dgen``` if more flexi
 If ```-g``` option is not used, the traffic generator will initialize all PHV containers by default with random values. When analyzing state variables, note that each state_group corresponds to the storage within a single stateful ALU in a stage. There should be as many state groups as there are salu_config machine code values set and there should be as many state variables per state group vector as there are state variable operands the stateful ALU uses. For instance, although the example uses 1 stateful ALU per stage for 2 stages, only 1 stateful ALU is set using salu_config, thus there is 1 state group specified. And raw.alu uses only 1 state variable so the state group size is 1 element. 
 
 The above example directs STDERR to null device due to compiler warnings from test generated ```dgen``` files. Many of these warnings 
-are either unavoidable or helpful for readibilty. While some can be fixed we leave that to future work due to the tediousness 
+are either unavoidable or helpful for readibilty. While some can be fixed we leave that for future work. 
 of the task. 
 
 # Test
