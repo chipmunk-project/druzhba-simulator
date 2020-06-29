@@ -213,4 +213,4 @@ flowlets:
 
 RCP:
 
-    druzhba_run.py rcp_equivalent_1_canonicalizer_equivalent_0 example_alus/stateful_alus/pred_raw.alu  example_alus/stateless_alus/stateless_alu.alu 3 3 3 hole_configurations/rcp_equivalent_1_canonicalizer_equivalent_0_pred_raw_stateless_alu_3_3_hole_cfgs.txt -c "0,1,2,3,30,31" -g 2 
+    python3 druzhba_run.py rcp_equivalent_1_canonicalizer_equivalent_0 example_alus/stateful_alus/pred_raw.alu  example_alus/stateless_alus/stateless_alu.alu 3 3 3 hole_configurations/rcp_equivalent_1_canonicalizer_equivalent_0_pred_raw_stateless_alu_3_3_hole_cfgs.txt -c "0,1,2,3,30,31" -g 2 
