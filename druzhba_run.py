@@ -175,7 +175,7 @@ def main ():
             nargs='?',
             type=str,
             default='{}',
-            help='Initial pipeline state variable values')
+            help='Initial pipeline state variable values (provided in the form: \"{{state_group_0_state_0, state_group_0_state_1, ...}, {state_group_1_state_0, state_group_1_state_1, ...}, ...}\"')
 
     parser.add_argument(
              '-n', 

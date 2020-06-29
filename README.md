@@ -26,13 +26,17 @@ pipeline to be simulated and ```dsim``` uses this file to model the pipeline's f
 
 5. You're good to go! 
 
+Simple example:
+
+    python3 druzhba_run.py simple example_alus/stateful_alus/raw.alu example_alus/stateless_alus/stateless_alu.alu 2 2 1  hole_configurations/simple_raw_stateless_alu_2_2_hole_cfgs.txt 
+
 # Usage
 
 To easily execute Druzhba use druzhba_run.py (this will execute both ```dgen``` and ```dsim```):
 
     python3 druzhba_run.py  -h
     usage: druzhba_run.py [-h] [-c [CONSTANTS]] [-g GEN] [-t [TICKS]] [-O [OPTI]]
-                          [-n]
+                          [-s [STATE]] [-n]
                           program_name stateful_alu stateless_alu pipeline_depth
                           pipeline_width num_stateful_alus hole_configs
 
@@ -62,13 +66,18 @@ To easily execute Druzhba use druzhba_run.py (this will execute both ```dgen``` 
                             Number corresponding to optimization level (0 for
                             unoptimized, 1 for sparse conditional constant
                             propagation, 2 for inlining)
+      -s [STATE], --state [STATE]
+                            Initial pipeline state variable values (provided in
+                            the form: "{{state_group_0_state_0,
+                            state_group_0_state_1, ...}, {state_group_1_state_0,
+                            state_group_1_state_1, ...}, ...}"
       -n                    Set if attempting to simulate the previous
                             configuration to prevent recompiling dsim
 
 
 Example:
 
-    python3 druzhba_run.py simple example_alus/stateful_alus/raw.alu example_alus/stateless_alus/stateless_alu.alu 2 2 1  hole_configurations/simple_raw_stateless_alu_2_2_hole_cfgs.txt -c "0,1,2,3" -g 1 
+    python3 druzhba_run.py simple example_alus/stateful_alus/raw.alu example_alus/stateless_alus/stateless_alu.alu 2 2 1  hole_configurations/simple_raw_stateless_alu_2_2_hole_cfgs.txt -c "0,1,2,3" -g 1 -s "{{28}}"
 
 More examples can be found at the bottom. Note: the -n recompile flag should be used if you have already compiled ```dsim``` previously and would like to rerun it without recompiling.
 This is especially useful if machine code pairs are to be swapped for unoptimized Druzhba executions 
@@ -130,6 +139,7 @@ To execute ```dsim```:
         -V, --version    Prints version information
 
     OPTIONS:
+        -s, --state <init_state_vector>    Initial value of state variables
         -i, --input <input_file>    Path to file containing machine code pairs.
         -g, --gen <num_phv_cons>    Number of PHV containers to be initialized by traffic generator
         -t, --ticks <ticks>         Number of ticks to execute for. A PHV enters the pipeline at every tick.
@@ -137,13 +147,15 @@ To execute ```dsim```:
 
 Example:
 
-    cargo run -- -g 1 -t 20 2>/dev/null
+    cargo run -- -g 1 -t 20 -s "{{2}}" 2>/dev/null
 
 
 Machine code file can be given to ```dsim``` instead of ```dgen``` if more flexibility is desired by not having to rerun ```dgen``` and recompile ```dsim``` but optimizations would not be able to be used.
 
+If ```-g``` option is not used, the traffic generator will initialize all PHV containers by default with random values. When analyzing state variables, note that each state_group corresponds to the storage within a single stateful ALU in a stage. There should be as many state groups as there are salu_config machine code values set and there should be as many state variables per state group vector as there are state variable operands the stateful ALU uses. For instance, although the example uses 1 stateful ALU per stage for 2 stages, only 1 stateful ALU is set using salu_config, thus there is 1 state group specified. And raw.alu uses only 1 state variable so the state group size is 1 element. 
+
 The above example directs STDERR to null device due to compiler warnings from test generated ```dgen``` files. Many of these warnings 
-are either unavoidable or helpful for readibilty. While some can be fixed we leave that to future work due to the tediousness 
+are either unavoidable or helpful for readibilty. While some can be fixed we leave that for future work. 
 of the task. 
 
 # Test
@@ -175,20 +187,30 @@ To run these tests:
 # More Examples
 
 
-Simulating simple:
+simple:
 
     python3 druzhba_run.py simple example_alus/stateful_alus/raw.alu example_alus/stateless_alus/stateless_alu.alu 2 2 1  hole_configurations/simple_raw_stateless_alu_2_2_hole_cfgs.txt -c "0,1,2,3" -g 1 -t 30 -s "{{0}}"
 
-Simulating marple_tcp_nmo:
+marple_tcp_nmo:
 
     python3 druzhba_run.py marple_tcp_nmo_equivalent_1_canonicalizer_equivalent_0 example_alus/stateful_alus/pred_raw.alu example_alus/stateless_alus/stateless_alu.alu 3 2 2  hole_configurations/marple_tcp_nmo_equivalent_1_canonicalizer_equivalent_0_pred_raw_stateless_alu_3_2_hole_cfgs.txt -g 1 -t 20 -O2
 
-Simulating blue_increase:
+blue_increase:
 
     python3 druzhba_run.py blue_increase_equivalent_2_canonicalizer_equivalent_0 example_alus/stateful_alus/pred_raw.alu example_alus/stateless_alus/stateless_alu_arith.alu 4 2 2  hole_configurations/blue_increase_equivalent_2_canonicalizer_equivalent_0_pred_raw_stateless_alu_arith_4_2_hole_cfgs.txt -g 2 -t 10 -O2 -c "11,21,10,12,0,3,1,2,10,2,1"
 
-Simulating snap_heavy_hitter:
+snap_heavy_hitter:
 
-    python3 druzhba_run.py snap_heavy_hitter example_alus/stateful_alus/pair.alu example_alus/stateless_alus/stateless_alu.alu 2 3 1 hole_configurations/snap_heavy_hitter_pair_stateless_alu_2_3_hole_cfgs.txt -g 1 -c "0,1,2,3,999,997,1002,1000,4"
+    python3 druzhba_run.py snap_heavy_hitter example_alus/stateful_alus/pair.alu example_alus/stateless_alus/stateless_alu.alu 2 3 1 hole_configurations/snap_heavy_hitter_pair_stateless_alu_2_3_hole_cfgs.txt -g 1 -c "0,1,2,3,999,997,1002,1000,4" -O1 -s "{{0,10}}"
 
+conga:
 
+    python3 druzhba_run.py conga_equivalent_1_canonicalizer_equivalent_1 example_alus/stateful_alus/pair.alu example_alus/stateless_alus/stateless_alu.alu  1 5 1 hole_configurations/conga_equivalent_1_canonicalizer_equivalent_1_pair_stateless_alu_1_5_hole_cfgs.txt -g 1 -c "0,1,2,3" -t 20 -O1
+
+flowlets:
+
+    python3 druzhba_run.py flowlets_equivalent_1_canonicalizer_equivalent_0 example_alus/stateful_alus/pred_raw.alu example_alus/stateless_alus/stateless_alu.alu 4 5 2 hole_configurations/flowlets_equivalent_1_canonicalizer_equivalent_0_pred_raw_stateless_alu_4_5_hole_cfgs.txt -g 3 -O1
+
+RCP:
+
+    druzhba_run.py rcp_equivalent_1_canonicalizer_equivalent_0 example_alus/stateful_alus/pred_raw.alu  example_alus/stateless_alus/stateless_alu.alu 3 3 3 hole_configurations/rcp_equivalent_1_canonicalizer_equivalent_0_pred_raw_stateless_alu_3_3_hole_cfgs.txt -c "0,1,2,3,30,31" -g 2 
