@@ -84,6 +84,7 @@ fn strip_curly_braces_from_str <'a> (s: &'a str) -> &'a str {
     let end_idx = s.rfind('}').unwrap();
     &s[begin_idx + 1..end_idx]
 }
+
 fn ret_vec_str_elements(s: &str) -> Vec<i32> {
     let vec: Vec<i32> = s.split(",").map(|n|  {
         match n.trim().parse::<i32> () {
@@ -204,7 +205,7 @@ fn execute_pipeline (num_phv_cons: i32,
           .arg(Arg::with_name("init_state_vector")
                .short("s")
                .long("state")
-               .help("Initial value of state variables")
+               .help("pipeline state variable values (provided in the form: \"{{state_group_0_state_0, state_group_0_state_1, ...}, {sta    te_group_1_state_0, state_group_1_state_1, ...}, ...}\"")
                .takes_value(true)
                .required(false)
           ).get_matches();
