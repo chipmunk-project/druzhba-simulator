@@ -50,7 +50,9 @@ def run_dsim(args):
              '-t',
              args[9],
              '-i',
-             args[7]], stderr=FNULL)
+             args[7],
+             '-s',
+             args[11]], stderr=FNULL)
 
 def run_dgen_optimized (args):
     subprocess.run(['cp',
@@ -103,7 +105,9 @@ def rerun_dsim (args):
            '-t',
            args[9],
            '-i',
-           args[7]], stderr=FNULL)
+           args[7],
+           '-s',
+           args[11]], stderr=FNULL)
     subprocess.run(['rm',
         'dsim_bin'])
 
@@ -166,6 +170,14 @@ def main ():
             default='0',
             help='Number corresponding to optimization level (0 for unoptimized, 1 for sparse conditional constant propagation, 2 for inlining)')
     parser.add_argument(
+            '-s',
+            '--state',
+            nargs='?',
+            type=str,
+            default='{}',
+            help='Initial pipeline state variable values')
+
+    parser.add_argument(
              '-n', 
               action='store_true', 
               help='Set if attempting to simulate the previous configuration to prevent recompiling dsim')
@@ -187,6 +199,7 @@ def main ():
     args.append(str(raw_args.ticks))
     opti = raw_args.opti
     args.append(str(opti))
+    args.append(raw_args.state)
     no_recompile = parser.parse_args().n
 
     if no_recompile:
