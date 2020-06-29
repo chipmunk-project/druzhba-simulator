@@ -178,7 +178,7 @@ fn test_rcp  (input_phvs : Vec <Phv <i32> >,
     let mut state = expected_phv.get_state();
     if input_phvs[i][1].get_value() < 30 {{
         state[1][0] += input_phvs[i][1].get_value();
-        state[2][0] += input_phvs[i][2].get_value();
+        state[2][0] += 1;
     }}
     assert!(output_phvs[i].get_state()[0][0] == input_phvs[i][0].get_value() + input_phvs[i].get_state()[0][0]);
     assert!(output_phvs[i].get_state()[1][0] == state[1][0]);
