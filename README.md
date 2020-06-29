@@ -206,3 +206,11 @@ snap_heavy_hitter:
 conga:
 
     python3 druzhba_run.py conga_equivalent_1_canonicalizer_equivalent_1 example_alus/stateful_alus/pair.alu example_alus/stateless_alus/stateless_alu.alu  1 5 1 hole_configurations/conga_equivalent_1_canonicalizer_equivalent_1_pair_stateless_alu_1_5_hole_cfgs.txt -g 1 -c "0,1,2,3" -t 20 -O1
+
+flowlets:
+
+    python3 druzhba_run.py flowlets_equivalent_1_canonicalizer_equivalent_0 example_alus/stateful_alus/pred_raw.alu example_alus/stateless_alus/stateless_alu.alu 4 5 2 hole_configurations/flowlets_equivalent_1_canonicalizer_equivalent_0_pred_raw_stateless_alu_4_5_hole_cfgs.txt -g 3 -O1
+
+RCP:
+
+    druzhba_run.py rcp_equivalent_1_canonicalizer_equivalent_0 example_alus/stateful_alus/pred_raw.alu  example_alus/stateless_alus/stateless_alu.alu 3 3 3 hole_configurations/rcp_equivalent_1_canonicalizer_equivalent_0_pred_raw_stateless_alu_3_3_hole_cfgs.txt -c "0,1,2,3,30,31" -g 2 

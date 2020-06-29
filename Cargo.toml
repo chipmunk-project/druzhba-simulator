@@ -1,7 +1,7 @@
 [package]
 name = "druzhba"
 version = "0.1.0"
-authors = ["Aatish Varma", "Jiayang Wang", "Anirudh Sivaraman", "Mike Wong"]
+authors = ["Mike Wong", "Aatish Varma", "Anirudh Sivaraman"]
 build = "build.rs" #LALRPOP preprocessing
 
 [dependencies]
