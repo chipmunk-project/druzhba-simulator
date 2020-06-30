@@ -46,8 +46,10 @@ fn extract_hole_cfgs (hole_cfgs_file: String) -> HashMap <String, i32> {
     }
     hole_cfgs_map
 }
-fn init_state_vector (num_stateful_alus: i32, 
-                      num_state_values: i32) -> Vec<Vec<i32>> {
+fn create_state_vector () -> Vec<Vec<i32>> {
+    let num_stateful_alus = prog_to_run::num_stateful_alus();
+    let num_state_values = prog_to_run::num_state_variables();
+
     let mut state = Vec::new();
     for _ in 0..num_stateful_alus{
         let mut tmp_state_vec = Vec::new();
@@ -61,8 +63,6 @@ fn init_state_vector (num_stateful_alus: i32,
 // Generate PHV and initialize state
 fn phv_generator (num_phv_cons: i32) -> Phv <i32>{
 
-    let num_stateful_alus = prog_to_run::num_stateful_alus();
-    let num_state_values = prog_to_run::num_state_variables();
     let mut phv: Phv<i32> = Phv::new();
     (0..num_phv_cons)
         .for_each( |_| {
@@ -77,11 +77,52 @@ fn phv_generator (num_phv_cons: i32) -> Phv <i32>{
                 field_value : 0,
             });
         }); 
-    let state = init_state_vector (num_stateful_alus, 
-         num_state_values);
+    let state = create_state_vector();
     phv.set_state(state);
     phv
         
+}
+
+fn create_phv (num_phv_cons: i32, phv_values: &Vec<i32>) -> Phv<i32> {
+
+    if phv_values.len() == 0 {
+        phv_generator(num_phv_cons)
+    }
+    else {
+
+        let mut phv: Phv<i32> = Phv::new();
+        if phv_values.len() >= prog_to_run::pipeline_width() as usize {
+            for i in 0..prog_to_run::pipeline_width() {
+                phv.add_container_to_phv(PhvContainer {
+                    field_value: phv_values[i as usize],
+                });
+            }
+        }
+        else {
+            let mut phv: Phv<i32> = Phv::new();
+            for i in 0..phv_values.len() {
+                phv.add_container_to_phv(PhvContainer {
+                    field_value: phv_values[i as usize],
+                });
+             }
+            (phv_values.len()..num_phv_cons as usize)
+                .for_each(|_| {
+                    phv.add_container_to_phv(PhvContainer {
+                        field_value: rand::thread_rng().gen_range(0,100),
+                    }); 
+                }); 
+            (phv.get_num_phv_containers()..prog_to_run::pipeline_width())
+                .for_each( |_| { 
+                    phv.add_container_to_phv(PhvContainer {
+                        field_value: 0,
+                    });
+                }); 
+        }
+        let state = create_state_vector();
+        phv.set_state(state);
+
+        phv
+    }
 }
 fn strip_curly_braces_from_str <'a> (s: &'a str) -> &'a str {
 
@@ -91,6 +132,7 @@ fn strip_curly_braces_from_str <'a> (s: &'a str) -> &'a str {
 }
 
 fn ret_vec_str_elements(s: &str) -> Vec<i32> {
+
     let vec: Vec<i32> = s.split(",").map(|n|  {
         match n.trim().parse::<i32> () {
             Ok(val) => val,
@@ -105,7 +147,8 @@ fn ret_vec_str_elements(s: &str) -> Vec<i32> {
     match vec.len() == state_len {
         true => vec,
         _ => {
-            println!("Failure: state vector has incorrect size invalid");
+
+            println!("Invalid state vector length");
             panic!("Failure: state vector has incorrect size")
 
         }
@@ -116,7 +159,7 @@ fn convert_init_state_vector_str (init_state_vector_str: &str) -> Vec<Vec<i32>>{
     if init_state_vector_str.contains("{}") 
     || !init_state_vector_str.contains("{") 
     || !init_state_vector_str.contains("}") {
-        println!("Improper state variables provided. Initializing random values");
+        println!("Improper state format provided. Initializing random values");
         return Vec::new();
     }
     let stripped_vec_str = strip_curly_braces_from_str(init_state_vector_str);
@@ -131,14 +174,27 @@ fn convert_init_state_vector_str (init_state_vector_str: &str) -> Vec<Vec<i32>>{
         slice = &slice[slice.find("}").unwrap() + 1..];
     }
     if state_vec.len() != group_len {
-        println!("Failure: state vector sizes are invalid");
+        println!("Invalid state vector length");
         panic!("Failure: state vector sizes are invalid");
     }
     else {
         state_vec
     }
 }
+
+fn convert_phv_str (phv_str: &str) -> Vec<i32> {
+    phv_str.split(",")
+        .map(|n| match n.trim().parse::<i32>() {
+            Ok(num) => num,
+            Err(_)  => {
+                println!("Incorrect value provided for PHV container");
+                panic!("Failure: unabel to parse given PHV container values")
+            },
+    })
+        .collect()
+}
 fn execute_pipeline (num_phv_cons: i32,
+                     phv_values: Vec<i32>,
                      init_state_vec: Vec<Vec<i32>>,
                      ticks: i32,
                      mut pipeline: Pipeline) {
@@ -150,9 +206,12 @@ fn execute_pipeline (num_phv_cons: i32,
     let mut input_phvs = Vec::new();
     let mut output_phvs = Vec::new();
     let mut state_string = "".to_string();
+    println!();
+    println!("phv values: {:?}", phv_values);
     // _t not used
     for t in 0..ticks {
-        let mut phv = phv_generator(num_phv_cons);  
+//        let mut phv = phv_generator(num_phv_cons);
+        let mut phv = create_phv(num_phv_cons, &phv_values);  
         if t == 0 {
             if init_state_vec.len() > 0 {
                 phv.set_state(init_state_vec.clone());
@@ -207,6 +266,13 @@ fn execute_pipeline (num_phv_cons: i32,
                .takes_value(true)
                .required(false)
           )
+          .arg(Arg::with_name("phv_initialization")
+               .short("p")
+               .long("phv")
+               .help("Initial PHV values in form \"x_1, x_2, ... \"")
+               .takes_value(true)
+               .required(false)
+          )
           .arg(Arg::with_name("init_state_vector")
                .short("s")
                .long("state")
@@ -247,11 +313,15 @@ fn execute_pipeline (num_phv_cons: i32,
       let init_state_vector_str = 
           match matches.value_of("init_state_vector") {
               Some(s) => s,
-              _     => "{}",
+              _       => "{}",
           };
-   
+      let phv_values = 
+          match matches.value_of("phv_initialization") {
+              Some(s) => convert_phv_str(s),
+              _       => Vec::new(),
+          };
       assert! (ticks >= 1);
-      assert! (prog_to_run::num_stateful_alus()>=1);
+      assert! (prog_to_run::num_stateful_alus() >= 1);
       println!("File: {}", file);
       let pipeline = match file.as_str() {
            "" => prog_to_run::init_pipeline(HashMap::new()),
@@ -259,9 +329,13 @@ fn execute_pipeline (num_phv_cons: i32,
                    extract_hole_cfgs(file.to_string())
             ),
       };
-      let init_state_vector = convert_init_state_vector_str(init_state_vector_str);
+      let init_state_vector = match init_state_vector_str {
+          "{}" => Vec::new(),
+          _ => convert_init_state_vector_str(init_state_vector_str),
+      };
       println!("Executing pipeline");
-      execute_pipeline (num_phv_containers, 
+      execute_pipeline (num_phv_containers,
+          phv_values,
           init_state_vector, 
           ticks, 
           pipeline);

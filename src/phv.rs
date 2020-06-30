@@ -55,10 +55,10 @@ impl<T> Phv<T>{
                      &i.to_string(),
                      &j.to_string(),
                      &self.state[i][j]));
-                if i != self.phv_containers.len() - 1 {
+                if self.state.len() > 0 
+                   && i != self.state.len() - 1 {
                     s.push_str(", ");
                 }
-      
             }
         }
         s.push_str ("}");
