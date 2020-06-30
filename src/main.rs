@@ -99,28 +99,30 @@ fn create_phv (num_phv_cons: i32, phv_values: &Vec<i32>) -> Phv<i32> {
             }
         }
         else {
-            let mut phv: Phv<i32> = Phv::new();
-            for i in 0..phv_values.len() {
+            for p in phv_values.iter() {
                 phv.add_container_to_phv(PhvContainer {
-                    field_value: phv_values[i as usize],
+                    field_value: *p,
                 });
-             }
-            (phv_values.len()..num_phv_cons as usize)
-                .for_each(|_| {
-                    phv.add_container_to_phv(PhvContainer {
-                        field_value: rand::thread_rng().gen_range(0,100),
+            }
+            if num_phv_cons as usize > phv_values.len() {
+                (phv_values.len()..num_phv_cons as usize)
+                    .for_each(|_| {
+                        phv.add_container_to_phv(PhvContainer {
+                            field_value: rand::thread_rng().gen_range(0,100),
+                        }); 
                     }); 
-                }); 
-            (phv.get_num_phv_containers()..prog_to_run::pipeline_width())
-                .for_each( |_| { 
-                    phv.add_container_to_phv(PhvContainer {
-                        field_value: 0,
-                    });
-                }); 
+            }
+            if prog_to_run::pipeline_width() > phv.get_num_phv_containers() {
+                (phv.get_num_phv_containers()..prog_to_run::pipeline_width())
+                    .for_each( |_| { 
+                        phv.add_container_to_phv(PhvContainer {
+                            field_value: 0,
+                        });
+                    }); 
+            }
         }
         let state = create_state_vector();
         phv.set_state(state);
-
         phv
     }
 }
@@ -183,6 +185,9 @@ fn convert_init_state_vector_str (init_state_vector_str: &str) -> Vec<Vec<i32>>{
 }
 
 fn convert_phv_str (phv_str: &str) -> Vec<i32> {
+    if phv_str == "" {
+        return Vec::new();
+    }
     phv_str.split(",")
         .map(|n| match n.trim().parse::<i32>() {
             Ok(num) => num,
@@ -210,7 +215,6 @@ fn execute_pipeline (num_phv_cons: i32,
     println!("phv values: {:?}", phv_values);
     // _t not used
     for t in 0..ticks {
-//        let mut phv = phv_generator(num_phv_cons);
         let mut phv = create_phv(num_phv_cons, &phv_values);  
         if t == 0 {
             if init_state_vec.len() > 0 {

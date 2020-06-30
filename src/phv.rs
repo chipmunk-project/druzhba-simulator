@@ -10,28 +10,28 @@ pub type PacketFieldSet = Vec <String>;
 
 #[derive(Clone)]
 pub struct Phv<T> {
-    pub bubble : bool, // false if initialized, true otherwise
-    pub phv_containers : Vec<PhvContainer<T>>, // Vector of PHV Containers
+    pub bubble: bool, // false if initialized, true otherwise
+    pub phv_containers: Vec<PhvContainer<T>>, // Vector of PHV Containers
     // Initial state value. Although state values aren't actually stored in PHVs,
     // we do so for easy access to the state results after PHV execution.
     // A pipeline stage writes the output state variables to the PHV so that
     // they can be retrieved after the PHV leaves the pipeline.
     // TODO: Remove state from PHV
-    pub state : Vec< Vec<i32> > 
+    pub state: Vec< Vec<i32> > 
                                 
 }
 impl<T> Phv<T>{
 
     pub fn new() -> Self {
-        Phv{ bubble : true, 
-             phv_containers : Vec::new(), 
-             state : Vec::new() }
+        Phv{ bubble: true, 
+             phv_containers: Vec::new(), 
+             state: Vec::new() }
     }
-  
+
     pub fn is_bubble(&self) -> bool {
         self.bubble == true
     }
-  
+ 
     pub fn add_container_to_phv(&mut self, phv_container: PhvContainer<T>) -> &Self {
         self.phv_containers.push(phv_container);
         self.bubble = false;
