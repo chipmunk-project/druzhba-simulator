@@ -185,10 +185,13 @@ fn convert_init_state_vector_str (init_state_vector_str: &str) -> Vec<Vec<i32>>{
 }
 
 fn convert_phv_str (phv_str: &str) -> Vec<i32> {
-    if phv_str == "" {
+    if phv_str == "" || phv_str == "{}" 
+    || !(phv_str.contains("{") && phv_str.contains("}")){
+        println!("Improper PHV format provided. Initializing random values");
         return Vec::new();
     }
-    phv_str.split(",")
+    strip_curly_braces_from_str(phv_str)
+        .split(",")
         .map(|n| match n.trim().parse::<i32>() {
             Ok(num) => num,
             Err(_)  => {
@@ -212,7 +215,6 @@ fn execute_pipeline (num_phv_cons: i32,
     let mut output_phvs = Vec::new();
     let mut state_string = "".to_string();
     println!();
-    println!("phv values: {:?}", phv_values);
     // _t not used
     for t in 0..ticks {
         let mut phv = create_phv(num_phv_cons, &phv_values);  
@@ -273,7 +275,7 @@ fn execute_pipeline (num_phv_cons: i32,
           .arg(Arg::with_name("phv_initialization")
                .short("p")
                .long("phv")
-               .help("Initial PHV values in form \"x_1, x_2, ... \"")
+               .help("Initial PHV values in form \"{x_1, x_2, ... \"}")
                .takes_value(true)
                .required(false)
           )
