@@ -36,7 +36,7 @@ To easily execute Druzhba use druzhba_run.py (this will execute both ```dgen``` 
 
     python3 druzhba_run.py  -h
     usage: druzhba_run.py [-h] [-c [CONSTANTS]] [-g GEN] [-t [TICKS]] [-O [OPTI]]
-                          [-s [STATE]] [-n]
+                          [-s [STATE]] [-p [PHV]] [-n]
                           program_name stateful_alu stateless_alu pipeline_depth
                           pipeline_width num_stateful_alus hole_configs
 
@@ -71,6 +71,8 @@ To easily execute Druzhba use druzhba_run.py (this will execute both ```dgen``` 
                             the form: "{{state_group_0_state_0,
                             state_group_0_state_1, ...}, {state_group_1_state_0,
                             state_group_1_state_1, ...}, ...}"
+      -p [PHV], --phv [PHV]
+                            Initial PHV values in form "{x_1, x_2, ... "}
       -n                    Set if attempting to simulate the previous
                             configuration to prevent recompiling dsim
 
@@ -142,6 +144,7 @@ To execute ```dsim```:
         -s, --state <init_state_vector>    Initial value of state variables
         -i, --input <input_file>    Path to file containing machine code pairs.
         -g, --gen <num_phv_cons>    Number of PHV containers to be initialized by traffic generator
+        -p, --phv <phv_initialization>     Initial PHV values in form "{x_1, x_2, ... "}
         -t, --ticks <ticks>         Number of ticks to execute for. A PHV enters the pipeline at every tick.
 
 

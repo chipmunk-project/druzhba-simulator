@@ -52,7 +52,9 @@ def run_dsim(args):
              '-i',
              args[7],
              '-s',
-             args[11]], stderr=FNULL)
+             args[11],
+             '-p',
+             args[12]], stderr=FNULL)
 
 def run_dgen_optimized (args):
     subprocess.run(['cp',
@@ -107,7 +109,9 @@ def rerun_dsim (args):
            '-i',
            args[7],
            '-s',
-           args[11]], stderr=FNULL)
+           args[11],
+           '-p',
+           args[12]], stderr=FNULL)
     subprocess.run(['rm',
         'dsim_bin'])
 
@@ -176,6 +180,13 @@ def main ():
             type=str,
             default='{}',
             help='Initial pipeline state variable values (provided in the form: \"{{state_group_0_state_0, state_group_0_state_1, ...}, {state_group_1_state_0, state_group_1_state_1, ...}, ...}\"')
+    parser.add_argument(
+            '-p',
+            '--phv',
+            nargs='?',
+            type=str,
+            default='',
+            help='Initial PHV values in form \"{x_1, x_2, ... \"}')
 
     parser.add_argument(
              '-n', 
@@ -200,6 +211,7 @@ def main ():
     opti = raw_args.opti
     args.append(str(opti))
     args.append(raw_args.state)
+    args.append(raw_args.phv)
     no_recompile = parser.parse_args().n
 
     if no_recompile:
