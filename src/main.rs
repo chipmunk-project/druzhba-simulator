@@ -3,7 +3,7 @@ extern crate druzhba;
 extern crate clap;
 
 mod prog_to_run;
-mod tests;
+//mod tests;
 
 use druzhba::pipeline::Pipeline;
 use druzhba::phv::Phv;
@@ -348,5 +348,5 @@ fn execute_pipeline (num_phv_cons: i32,
 }
 #[cfg(test)]
 mod test_druzhba;
-mod test_with_chipmunk;
+//mod test_with_chipmunk;
 

@@ -53,7 +53,8 @@ impl PipelineStage {
         // Need old state variables first to put them
         // into output muxes later
         let mut alu_count: usize = 0;
-
+        
+        let mut stateful_alu_outputs = Vec::new();
         for alu in self.stateful_alus.iter_mut () {
           if self.salu_configs[alu_count] == 1 {
 
@@ -79,16 +80,17 @@ impl PipelineStage {
           let mut packet_fields: Vec<PhvContainer<i32>> = 
                 alu.input_mux_output();
           let state_result = alu.run (&mut packet_fields);
+          stateful_alu_outputs.push(state_result.2[0]);
           let mut old_state_result: Vec <i32> = state_result.0;
 
           let new_state_result: Vec <i32> = state_result.1;
-
+            /*
           if self.output_mux_globals[alu_count] == 1 {
             old_state.append(&mut old_state_result);
           }
           else {
             old_state.append(&mut new_state_result.clone());
-          }
+          }*/
           new_state.push (new_state_result);
           alu.reset_state_variables();
           alu_count += 1;
@@ -109,7 +111,8 @@ impl PipelineStage {
 
           let result = alu.run(&packet_fields).0[0];
           // State variables and returned value from stateless ALU
-          let mut output_mux_fields: Vec <i32> = old_state.clone();
+//          let mut output_mux_fields: Vec <i32> = old_state.clone();
+          let mut output_mux_fields = stateful_alu_outputs.clone();
 
           output_mux_fields.push (result);
 

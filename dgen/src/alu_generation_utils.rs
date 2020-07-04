@@ -177,7 +177,7 @@ fn generate_init_pipeline (name: String,
       for k in 0..num_stateful_operands {
           // Input mux ALU count value hardcoded to 0 because only
           // 1 stateful ALU per stage
-          let input_mux_hole = format!("{}_stateful_{}_{}_operand_mux_{}_ctrl", 
+          let input_mux_hole = format!("{}_stateful_alu_{}_{}_operand_mux_{}_ctrl", 
                                                 &name, i, j, k);
           pipeline_stage.push_str (&format!("  {}.push (InputMux {{ input_phv: empty_phv.clone(), index: hole_vars[\"{}\"] }});\n", 
                stateful_input_muxes,
@@ -219,9 +219,9 @@ fn generate_init_pipeline (name: String,
       // Goes from 1 to the number of operands and initializes
       // InputMuxes. Start from 1 because it does so in 
       // Chipmunk for the mux counter
-      for k in 1..num_stateless_operands+1 {
+      for k in 0..num_stateless_operands {
 
-        let input_mux_hole = format!("{}_stateless_alu_{}_{}_mux{}_ctrl", 
+        let input_mux_hole = format!("{}_stateless_alu_{}_{}_operand_mux_{}_ctrl", 
                                      &name, i, j, k);
       pipeline_stage.push_str (&format!("  {}.push (InputMux {{ input_phv: empty_phv.clone(), index: hole_vars[\"{}\"] }});\n", 
            stateless_input_muxes,
@@ -264,6 +264,7 @@ fn generate_init_pipeline (name: String,
    let output_mux_globals_string = format!("output_mux_globals_{}", i);
    let mut output_mux_globals = format!("  let {} = vec![",
        output_mux_globals_string);
+/*
    for k in 0..num_stateful_alus {
        output_mux_globals.push_str (&format!("hole_vars[\"{}_stateful_alu_{}_{}_output_mux_global\"]",
             name.clone(),
@@ -272,7 +273,7 @@ fn generate_init_pipeline (name: String,
        if k < num_stateful_alus - 1 {
            output_mux_globals.push_str(",");
        }
-   }
+   }*/
 
    output_mux_globals.push_str("];\n");
    pipeline_stage.push_str (&salu_configs);
@@ -441,6 +442,7 @@ fn generate_optimized_init_pipeline (name: String,
                                                     i);
    let mut output_mux_globals = format!("  let {} = vec![",
          output_mux_globals_string);
+  /*
    for k in 0..num_stateful_alus {
      let output_mux_global_hole = format!("{}_stateful_alu_{}_{}_output_mux_global",
          name.clone(),
@@ -450,8 +452,7 @@ fn generate_optimized_init_pipeline (name: String,
      if k < num_stateful_alus - 1 {
       output_mux_globals.push_str(",");
      }
-   }
-
+   }*/
    output_mux_globals.push_str("];\n");
    pipeline_stage.push_str (&salu_configs);
 

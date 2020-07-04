@@ -82,9 +82,9 @@ impl fmt::Display for Alu {
         }
         let state_var_length = STATE_VAR_MAP.read().unwrap().len();
         let mut end = String::from("");
-        if state_var_length == 0 {
+//        if state_var_length == 0 {
           end.push_str("    };\n   Box::new(alu)\n}\n"); 
-        }
+//        }
 
         // Function name to initialize ALU function
         let init_name = 
@@ -103,7 +103,7 @@ impl fmt::Display for Alu {
         let inner_header = 
 
             match FUNC_COUNT.read().unwrap()["state"] {
-                0 => String::from ("    let alu = move |state_vec : &mut Vec <i32>, phv_containers : &Vec <PhvContainer <i32>>| -> (Vec,<i32>, (Vec<i32>, Vec<i32>){\n"),
+                0 => String::from ("    let alu = move |state_vec : &mut Vec <i32>, phv_containers : &Vec <PhvContainer <i32>>| -> (Vec<i32>, Vec<i32>, Vec<i32>){\n"),
                 1 =>  String::from ("    // state_vec unused\n    let alu = move |_state_vec : &mut Vec <i32>, phv_containers : &Vec <PhvContainer <i32>>| -> (Vec<i32>, Vec<i32>, Vec<i32>){\n"),
                 _ => panic!("Error: invalid state indicator"),
             };
@@ -112,8 +112,8 @@ impl fmt::Display for Alu {
         outer_header.push_str (&init_name);
         outer_header.push_str (
             match *OPTIMIZED.read().unwrap(){
-              0 => "(hole_vars: HashMap <String, i32>) -> Box <dyn Fn (&mut Vec <i32>, &Vec <PhvContainer <i32>>) -> (Vec <i32>, Vec <i32> ) >{\n",
-              _ => "(_hole_vars: HashMap <String, i32>) -> Box <dyn Fn (&mut Vec <i32>, &Vec <PhvContainer <i32>>) -> (Vec <i32>, Vec <i32> ) >{\n",
+              0 => "(hole_vars: HashMap <String, i32>) -> Box <dyn Fn (&mut Vec <i32>, &Vec <PhvContainer <i32>>) -> (Vec<i32>, Vec <i32>, Vec <i32>)> {\n",
+              _ => "(_hole_vars: HashMap <String, i32>) -> Box <dyn Fn (&mut Vec <i32>, &Vec <PhvContainer <i32>>) -> (Vec<i32>, Vec <i32>, Vec <i32>)> {\n",
             });
         write!(f, "{}{}{}{}{}", outer_header, 
                                 inner_header, 
@@ -771,9 +771,6 @@ fn generate_hole_name (mut helper_name: String) -> String {
     let pipeline = *PIPELINE_STAGE.read().unwrap();
     let alu = *ALU_NUMBER.read().unwrap();
     let name = NAME.read().unwrap().clone();
-    if helper_name == "immediate_operand" {
-      helper_name = "immediate".to_string();
-    }
     match FUNC_COUNT.read().unwrap()["state"] {
         0 => format!("{}_stateful_alu_{}_{}_{}_{}_global", 
             name, 

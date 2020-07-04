@@ -15,7 +15,7 @@ pub struct ALU{
     pub sequential_function :
         Box <dyn Fn (&mut Vec <StateVar>,
                      &Vec <PhvContainer<i32> >) 
-                    -> (Vec <i32>, Vec <i32>) >,
+                    -> (Vec <i32>, Vec <i32>, Vec<i32>) >,
     pub state_variables : Vec<i32>,
     pub input_muxes : Vec <InputMux> ,
     pub output_mux : OutputMux,
@@ -48,11 +48,10 @@ impl ALU {
     // be passed to the output mux. 
     pub fn run (&mut self, 
                 packet_fields: &Vec<PhvContainer<i32>>) 
-                -> (Vec <i32>, Vec <i32>) {
+                -> (Vec <i32>, Vec <i32>, Vec<i32>) {
       (self.sequential_function) 
           (&mut self.state_variables,
-           packet_fields
-           )
+           packet_fields)
     }
 
     //Helper functions to allow values to passed from and to muxs
