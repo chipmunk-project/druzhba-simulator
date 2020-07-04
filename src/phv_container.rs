@@ -1,6 +1,7 @@
 
 use std::fmt;
 #[derive(Clone)]
+#[derive(Debug)]
 pub struct PhvContainer <T> {
   /*PHV Containers do not have names, just indexes in the PHV*/
   pub field_value: T,

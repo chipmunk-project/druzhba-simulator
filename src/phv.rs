@@ -7,7 +7,7 @@ pub type FieldName = String;
 pub type FieldType = i32;
 pub type PacketFieldSet = Vec <String>;
 
-
+#[derive(Debug)]
 #[derive(Clone)]
 pub struct Phv<T> {
     pub bubble: bool, // false if initialized, true otherwise

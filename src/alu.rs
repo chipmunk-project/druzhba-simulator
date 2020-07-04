@@ -49,6 +49,7 @@ impl ALU {
     pub fn run (&mut self, 
                 packet_fields: &Vec<PhvContainer<i32>>) 
                 -> (Vec <i32>, Vec <i32>, Vec<i32>) {
+      println!("\tCurrent state vars: {:?}", self.state_variables);
       (self.sequential_function) 
           (&mut self.state_variables,
            packet_fields)

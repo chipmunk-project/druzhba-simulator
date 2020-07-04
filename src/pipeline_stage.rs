@@ -41,7 +41,9 @@ impl PipelineStage {
       if input_phv.is_bubble() {
         (Phv::new(), Phv::new())
       }
-      else{
+      else {
+
+        println!("Current stage salu_configs: {:?}", self.salu_configs);
         let mut output_phv = 
             Phv { bubble: false, 
                   phv_containers: Vec::new(),
@@ -79,18 +81,13 @@ impl PipelineStage {
           alu.send_packets_to_input_muxes(input_phv.clone());
           let mut packet_fields: Vec<PhvContainer<i32>> = 
                 alu.input_mux_output();
+          println!("Giving to stateful ALU: {:?}", packet_fields);
           let state_result = alu.run (&mut packet_fields);
+          println!("stateful alu result: {}", state_result.2[0]);
           stateful_alu_outputs.push(state_result.2[0]);
           let mut old_state_result: Vec <i32> = state_result.0;
 
           let new_state_result: Vec <i32> = state_result.1;
-            /*
-          if self.output_mux_globals[alu_count] == 1 {
-            old_state.append(&mut old_state_result);
-          }
-          else {
-            old_state.append(&mut new_state_result.clone());
-          }*/
           new_state.push (new_state_result);
           alu.reset_state_variables();
           alu_count += 1;
@@ -108,13 +105,14 @@ impl PipelineStage {
               alu.input_mux_output();
           //After being passed to alu, value is sent to an
           //output mux and put into a PHV
-
+          println!("Passing to stateless ALU: {:?}", packet_fields);
           let result = alu.run(&packet_fields).0[0];
+          println!("Stateless alu result: {}", result);
           // State variables and returned value from stateless ALU
-//          let mut output_mux_fields: Vec <i32> = old_state.clone();
           let mut output_mux_fields = stateful_alu_outputs.clone();
 
-          output_mux_fields.push (result);
+          output_mux_fields.push(result);
+          println!("Passing to output mux: {:?}", output_mux_fields);
 
           alu.send_packets_to_output_mux(&output_mux_fields);
           output_phv.add_container_to_phv(alu.output_mux.output());
@@ -133,6 +131,8 @@ impl PipelineStage {
           }
         }
         output_phv.set_state (output_state);
+        println!("PHV Leaving: {}", output_phv);
+        println!("--------\n");
         (initial_phv, output_phv)
       }
     }
