@@ -11,7 +11,7 @@ def run_dgen_unoptimized (args):
 
     with open (os.devnull, 'w') as FNULL:
         if args[6] == '':
-            subprocess.run(['./dgen_bin',
+            output = subprocess.run(['./dgen_bin',
                  args[0],  # Program name
                  args[1],  # Stateful ALU
                  args[2],  # Stateless ALU
@@ -21,8 +21,10 @@ def run_dgen_unoptimized (args):
                  '-o prog_to_run.rs',  # Output prog_to_run
                  ], stderr=FNULL)
 
+            code = output.check_returncode()
+
         else:
-            subprocess.run(['./dgen_bin',
+            output = subprocess.run(['./dgen_bin',
                  args[0],  # Program name
                  args[1],  # Stateful ALU
                  args[2],  # Stateless ALU
@@ -33,6 +35,7 @@ def run_dgen_unoptimized (args):
                  args[6],  # Constant vec
                  '-o prog_to_run.rs',  # Output prog_to_run
                  ],  stderr=FNULL)
+            code = output.check_returncode()
     subprocess.run(['rm',
                     'dgen_bin'])
     subprocess.run(['mv',
@@ -42,7 +45,7 @@ def run_dgen_unoptimized (args):
 def run_dsim(args):
 
     with open (os.devnull, 'w') as FNULL:
-        subprocess.run(['cargo',
+        output = subprocess.run(['cargo',
              'run',
              '--',
              '-g',
@@ -55,14 +58,14 @@ def run_dsim(args):
              args[11],
              '-p',
              args[12]], stderr=FNULL)
-
+        output.check_returncode()
 def run_dgen_optimized (args):
     subprocess.run(['cp',
              'dgen/target/debug/dgen',
              'dgen_bin'])
     with open (os.devnull, 'w') as FNULL:
         if args[6] == '':
-            subprocess.run(['./dgen_bin',
+            output = subprocess.run(['./dgen_bin',
                  args[0],  # Program name
                  args[1],  # Stateful ALU
                  args[2],  # Stateless ALU
@@ -74,8 +77,9 @@ def run_dgen_optimized (args):
                   args[7],  # Hole configurations
                  ('-O' + args[10]),  # Optimization level
                  ], stderr=FNULL)
+            code = output.check_returncode()
         else: 
-            subprocess.run(['./dgen_bin',
+            output = subprocess.run(['./dgen_bin',
                 args[0],  # Program name
                 args[1],  # Stateful ALU
                 args[2],  # Stateless ALU
@@ -89,6 +93,7 @@ def run_dgen_optimized (args):
                  args[7],  # Hole configurations
                 ('-O' + args[10]),  # Optimization level
                 ], stderr=FNULL)
+            code = output.check_returncode()
     subprocess.run(['rm',
         'dgen_bin'])
     subprocess.run(['mv',
@@ -101,17 +106,18 @@ def rerun_dsim (args):
          'target/debug/druzhba',
          'dsim_bin'])
     with open(os.devnull, 'w') as FNULL:
-      subprocess.run(['./dsim_bin',
-           '-g',
-           args[8],
-           '-t',
-           args[9],
-           '-i',
-           args[7],
-           '-s',
-           args[11],
-           '-p',
-           args[12]], stderr=FNULL)
+        output = subprocess.run(['./dsim_bin',
+             '-g',
+             args[8],
+             '-t',
+             args[9],
+             '-i',
+             args[7],
+             '-s',
+             args[11],
+             '-p',
+             args[12]], stderr=FNULL)
+        output.check_returncode()
     subprocess.run(['rm',
         'dsim_bin'])
 
@@ -220,15 +226,18 @@ def main ():
         exit(0)
 
     elif opti == 0:
+        print('Building dgen ... ')
         subprocess.run(['./build_dgen.sh'])
-        print('dgen completed')
-        print('Preparing dsim for execution (this may take a few minutes) ... ')
         run_dgen_unoptimized(args)
-    else:
-        subprocess.run(['./build_dgen.sh'])
         print('dgen completed')
         print('Preparing dsim for execution (this may take a few minutes) ... ')
+    else:
+
+        print('Building dgen ... ')
+        subprocess.run(['./build_dgen.sh'])
         run_dgen_optimized(args)
+        print('dgen completed')
+        print('Preparing dsim for execution (this may take a few minutes) ... ')
     run_dsim(args)
 
 if __name__== "__main__":
