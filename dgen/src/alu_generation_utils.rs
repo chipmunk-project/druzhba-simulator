@@ -48,7 +48,7 @@ pub fn generate_alus (name: String,
   // all ALUs and their corresponding helper functions
   for _i in 0..pipeline_depth {
     for _j in 0..num_stateful_alus {
-       
+      
       let stateful_alu_string = 
           match AluParser::new().parse(
               &full_stateful_alu.prepend_opt_header_to_alu()){
@@ -66,7 +66,6 @@ pub fn generate_alus (name: String,
     full_stateful_alu.reset_alu_count();
     full_stateful_alu.increment_pipeline_stage();
     for _j in 0..pipeline_width {
-
       let stateless_alu_string =  
         match AluParser::new().parse(
             &full_stateless_alu.prepend_opt_header_to_alu()){
@@ -178,7 +177,7 @@ fn generate_init_pipeline (name: String,
       for k in 0..num_stateful_operands {
           // Input mux ALU count value hardcoded to 0 because only
           // 1 stateful ALU per stage
-          let input_mux_hole = format!("{}_stateful_operand_mux_{}_{}_{}_ctrl", 
+          let input_mux_hole = format!("{}_stateful_{}_{}_operand_mux_{}_ctrl", 
                                                 &name, i, j, k);
           pipeline_stage.push_str (&format!("  {}.push (InputMux {{ input_phv: empty_phv.clone(), index: hole_vars[\"{}\"] }});\n", 
                stateful_input_muxes,
@@ -352,7 +351,7 @@ fn generate_optimized_init_pipeline (name: String,
       for k in 0..num_stateful_operands {
         // Input mux ALU count value hardcoded to 0 because only
         // 1 stateful ALU per stage
-        let input_mux_hole = format!("{}_stateful_operand_mux_{}_{}_{}_ctrl", 
+        let input_mux_hole = format!("{}_stateful_operand_{}_{}_mux_{}_ctrl", 
              &name, i, j, k);
         pipeline_stage.push_str (&format!("  {}.push (InputMux {{ input_phv: empty_phv.clone(), index: {} }});\n", 
              stateful_input_muxes,

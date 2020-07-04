@@ -8,6 +8,7 @@ RELOP            = "rel_op"; // <, >, <=, >=, ==, !=
 ARITHOP          = "arith_op"; // +,-
 MUX3             = "Mux3";   // 3-to-1 mux
 MUX2             = "Mux2";   // 2-to-1 mux
+MUX4             = "Mux4";   // 4-to-1 mux
 OPT              = "Opt";    // Pick either the argument or 0
 CONSTANT         = "C()"; // Return a finite constant
 TRUE             = "True";   // Guard corresponding to "always update"
@@ -26,7 +27,7 @@ AND              = "&&";
 
 
 pub Alu : Box <Alu> = {
-  <oh:OptHeader?> <c:Comment*> <h:Header> <s:Stmt> => Box::new(Alu::Program (oh, h, s)),
+  <oh:OptHeader?> <c:Comment*> <h:Header> <s:Stmt+> => Box::new(Alu::Program (oh, h, s)),
 };
 
 pub OptHeader : Box<OptHeader> = {
@@ -113,7 +114,9 @@ pub Header : Box<Header> = {
 
 pub Stmt : Box<Stmt>  = {
   <ret:RETURN> <e:Expr> ";"=>  Box::new (Stmt::Return (e)),
-  <var:Expr> "=" <e:Expr> ";"=> Box::new (Stmt::Assign (var, e)), 
+  <var:Expr> "=" <e:Expr> ";" => Box::new (Stmt::Assign (var, e)), 
+
+  "int" <var:Expr> "=" <e:Expr> ";" => Box::new (Stmt::Initialize(var, e)), 
   // If/else statement
   IF "(" <if_expr:Expr> ")" "{" <if_stmts:Stmt+>  "}" 
   <elif_block:(ELIF "(" <Expr> ")" "{" <Stmt+> "}")*>
@@ -127,10 +130,10 @@ pub Stmt : Box<Stmt>  = {
 // Expr -> AddExpr -> Factor -> Function -> Term
 // hierarchy needed to specify precedence
 pub Expr : Box<Expr> = {
-    
-   <e1:Expr> <op:ExprOp> <a:AddExpr>  => 
+   
+   <e1:Expr> "?" <e2:Expr> ":" <e3:AddExpr> => Box::new(Expr::Tern(e1, e2, e3)), 
+   <e1:Expr> <op:ExprOp> <a:AddExpr> => 
     Box::new(Expr::Op (e1, op, a)),
-
   <a:AddExpr> => a,
 
 };
@@ -166,8 +169,10 @@ pub FactorOp : Opcode = {
   "/" => Opcode::Div,
 };
 
-pub Function : Box <Expr> ={
-    <m:MUX3> "(" <e1:Expr> "," <e2:Expr> "," <e3:Expr> ")" =>
+pub Function : Box <Expr> = {
+  <m:MUX4> "(" <e1:Expr> "," <e2:Expr> "," <e3:Expr> "," <e4:Expr> ")" =>
+    Box::new (Expr::Mux4(e1, e2, e3, e4)),
+  <m:MUX3> "(" <e1:Expr> "," <e2:Expr> "," <e3:Expr> ")" =>
     Box::new (Expr::Mux3 (e1, e2, e3)),
   <m:MUX2> "(" <e1:Expr> "," <e2:Expr> ")" =>
     Box::new (Expr::Mux2 (e1, e2)),

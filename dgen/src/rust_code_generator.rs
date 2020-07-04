@@ -33,12 +33,12 @@ lazy_static! {
 }
 
 pub enum Alu {
-  Program ( Option<Box<OptHeader>>, Box <Header>, Box <Stmt>),
+  Program ( Option<Box<OptHeader>>, Box <Header>, Vec<Box <Stmt>>),
 }
 impl fmt::Display for Alu {
   fn fmt (&self, f : &mut fmt::Formatter) -> fmt::Result {
     match &*self {
-      Alu::Program (opt_header, header, stmt) => {
+      Alu::Program (opt_header, header, stmts) => {
         { // Write lock in its own scope to avoid deadlock
           let mut tmp = HELPER_STRING.write().unwrap();
           *tmp = String::from("");
@@ -75,14 +75,15 @@ impl fmt::Display for Alu {
                 },
                 _ => String::from(""),
             };
-        let body = String::from(&format!("{}{}", header, stmt));
+        let mut body = format!("{}", header);
+        for s in stmts.iter() {
+            let st = format!("{}", s);
+            body.push_str(&st);
+        }
         let state_var_length = STATE_VAR_MAP.read().unwrap().len();
         let mut end = String::from("");
         if state_var_length == 0 {
           end.push_str("    };\n   Box::new(alu)\n}\n"); 
-        }
-        else {
-          end.push_str("    (old_state, state_vec.clone())\n    };\n    Box::new(alu)\n}\n");
         }
 
         // Function name to initialize ALU function
@@ -102,8 +103,8 @@ impl fmt::Display for Alu {
         let inner_header = 
 
             match FUNC_COUNT.read().unwrap()["state"] {
-                0 => String::from ("    let alu = move |state_vec : &mut Vec <i32>, phv_containers : &Vec <PhvContainer <i32>>| -> (Vec <i32>, Vec <i32>){\n"),
-                1 =>  String::from ("    // state_vec unused\n    let alu = move |_state_vec : &mut Vec <i32>, phv_containers : &Vec <PhvContainer <i32>>| -> (Vec <i32>, Vec <i32>){\n"),
+                0 => String::from ("    let alu = move |state_vec : &mut Vec <i32>, phv_containers : &Vec <PhvContainer <i32>>| -> (Vec,<i32>, (Vec<i32>, Vec<i32>){\n"),
+                1 =>  String::from ("    // state_vec unused\n    let alu = move |_state_vec : &mut Vec <i32>, phv_containers : &Vec <PhvContainer <i32>>| -> (Vec<i32>, Vec<i32>, Vec<i32>){\n"),
                 _ => panic!("Error: invalid state indicator"),
             };
 
@@ -111,8 +112,8 @@ impl fmt::Display for Alu {
         outer_header.push_str (&init_name);
         outer_header.push_str (
             match *OPTIMIZED.read().unwrap(){
-              0 => "(hole_vars : HashMap <String, i32>) -> Box <dyn Fn (&mut Vec <i32>, &Vec <PhvContainer <i32>>) -> (Vec <i32>, Vec <i32> ) >{\n",
-              _ => "(_hole_vars : HashMap <String, i32>) -> Box <dyn Fn (&mut Vec <i32>, &Vec <PhvContainer <i32>>) -> (Vec <i32>, Vec <i32> ) >{\n",
+              0 => "(hole_vars: HashMap <String, i32>) -> Box <dyn Fn (&mut Vec <i32>, &Vec <PhvContainer <i32>>) -> (Vec <i32>, Vec <i32> ) >{\n",
+              _ => "(_hole_vars: HashMap <String, i32>) -> Box <dyn Fn (&mut Vec <i32>, &Vec <PhvContainer <i32>>) -> (Vec <i32>, Vec <i32> ) >{\n",
             });
         write!(f, "{}{}{}{}{}", outer_header, 
                                 inner_header, 
@@ -162,7 +163,7 @@ impl fmt::Display for OptHeader {
           };
 
         write!(f, "")
-     }
+      }
     }
   }
 }
@@ -171,7 +172,6 @@ pub enum Header {
              Vec<String>, // State variables
              Vec<String>, // Hole variables
              Vec<String>), // Phv containers
-
 }
 impl fmt::Display for Header {
   fn fmt (&self, f : &mut fmt::Formatter) -> fmt::Result {
@@ -225,23 +225,36 @@ impl fmt::Display for Header {
   }
 }
 pub enum Stmt {
-  Return (Box <Expr>), 
-  If (Box<Expr>, // If expr
+  Return(Box <Expr>), 
+  If(Box<Expr>, // If expr
     Vec <Box<Stmt>>, // If body
     Vec<(Box<Expr>, Vec <Box<Stmt>>)>, // Pairs of elif expr along
                                        // with expr statements
     Option<Vec<Box<Stmt>>>), // Else body
-  Assign (Box<Expr>, Box<Expr>), // Variable assigned to an expr
+    Assign(Box<Expr>, Box<Expr>), // Variable assigned to an expr
+
+    Initialize(Box<Expr>, Box<Expr>), // Variable initialized to an expr
 }
 
 impl fmt::Display for Stmt {
   fn fmt (&self, f: &mut fmt::Formatter) -> fmt::Result {
     // Need to borrow self so we don't take ownership
     // of data in tuple
-    match &*self{
-      Stmt::Return (e) => 
-          write!(f, "        (vec![({}) as i32], Vec::new())\n", e),
-
+    match &*self {
+      Stmt::Return (e) => {
+          let is_stateful : bool = 
+              match FUNC_COUNT.read().unwrap()["state"]{
+                0 => true,
+                1 => false,
+                _ => panic! ("Error: incorrect code given to state indicator"), 
+              };
+          match is_stateful {
+            // Stateful return
+            true => write!(f, "        (old_state, state_vec.clone(), vec![({}) as i32])\n", e),
+            // Stateless return
+            false => write!(f, "        (vec![({}) as i32], Vec::new(), Vec::new())\n", e),
+         }
+      }
       // Generates if statement
       Stmt::If (e1, if_block, elif_block, else_block) => {
           let mut if_body = String::from("");
@@ -251,7 +264,6 @@ impl fmt::Display for Stmt {
               match FUNC_COUNT.read().unwrap()["state"]{
                 0 => true,
                 1 => false,
-
                 _ => panic! ("Error: incorrect code given to state indicator"), 
               };
           let opt_inequality = 
@@ -340,22 +352,27 @@ impl fmt::Display for Stmt {
       },
       // TODO: Possibly check if the var name is an invalid expr.
       // Otherwise, just wait until rustc catches it
-      Stmt::Assign (s, e) => write!(f, "        {} = {};\n", s, e),
+      Stmt::Assign(s, e) => write!(f, "        {} = {};\n", s, e),
+
+      Stmt::Initialize(s, e) => write!(f, "        let {} = {};\n", s, e),
+
     }
   }
 }
 
 pub enum Expr {
   // Captures parenthesis
-  ExprWithParen (Box <Expr>),
-  Num (i32),
-  Var (String),
-  Op (Box <Expr>, Opcode, Box<Expr> ),
-  Mux3 (Box <Expr>, Box <Expr>, Box <Expr> ),
-  Mux2 (Box <Expr>, Box <Expr>),
-  Opt (Box <Expr>),
-  ArithOp (Box<Expr>, Box<Expr>),
-  Relop (Box<Expr>, Box<Expr>),
+  ExprWithParen(Box <Expr>),
+  Num(i32),
+  Var(String),
+  Op(Box <Expr>, Opcode, Box<Expr> ),
+  Mux4(Box <Expr>, Box<Expr>, Box<Expr>, Box<Expr>),
+  Mux3(Box <Expr>, Box <Expr>, Box <Expr> ),
+  Mux2(Box <Expr>, Box <Expr>),
+  Opt(Box <Expr>),
+  ArithOp(Box<Expr>, Box<Expr>),
+  Relop(Box<Expr>, Box<Expr>),
+  Tern(Box<Expr>, Box<Expr>, Box<Expr>),
   Constant,
 }
 
@@ -366,14 +383,54 @@ impl fmt::Display for Expr {
     match &*self{
       Expr::ExprWithParen (e) => write!(f, "({})",e),
       Expr::Num (n)=> write! (f, "{}",n),
-      Expr::Var (v)=> write! (f, "{}", find_var_name(v.to_string())),
+      Expr::Var (v)=> write!(f, "{}", find_var_name(v.to_string())),
       Expr::Op (e1, op, e2) => write! (f, "{}{}{}", e1, op, e2),
+      Expr::Mux4 (e1, e2, e3, e4) => { 
+          let mux4_hole_name = generate_hole_name ("Mux4".to_string());
+          let mux4_name = generate_helper_name ("Mux4".to_string());
+          if optimize == 0 {
+            generate_mux4(mux4_name.as_str());
+            write! (f, "{}({}, {}, {}, {}, hole_vars[\"{}\"])",
+                    mux4_name,
+                    e1, e2, e3, e4, mux4_hole_name)
+          }
+          else if optimize > 0 {
+            let opcode = 
+                match HOLE_VALS.read().unwrap().get(&mux4_hole_name){
+                   Some (num) => *num,
+                   _          => panic!("Error: Could not access mux3 hole variable by hole name"),
+                };
+            // Optimize the mux3 function using the hole variable
+            if optimize == 1 {
+                generate_mux4_optimized(mux4_name.as_str(),
+                                        opcode);
+                write! (f, "{}({}, {}, {}, {})",
+                        mux4_name,
+                        e1, e2, e3, e4)
+            }
+            else {
+                let s1 = format!("{}", e1);
+                let s2 = format!("{}", e2);
+                let s3 = format!("{}", e3);
+                let s4 = format!("{}", e4);
+                match opcode {
+                    0 => write!(f, "{}", s1),
+                    1 => write!(f, "{}", s2),
+                    2 => write!(f, "{}", s3),
+                    _ => write!(f, "{}", s4)
+                }
+            }
+        }
+        else {
+          panic!("Error: Optimization level is invalid");
+        }
+
+      }
       // Generates the calls to the helper functions and the 
       // helper functions themselves
       Expr::Mux3 (e1, e2, e3) => { 
           let mux3_hole_name = generate_hole_name ("Mux3".to_string());
           let mux3_name = generate_helper_name ("Mux3".to_string());
-
           // Unoptimized case: generate function call
           // and use generate_mux3 to generate the mux3
           // function
@@ -422,14 +479,14 @@ impl fmt::Display for Expr {
 
           let mux2_name = 
               generate_helper_name ("Mux2".to_string());
-
+    
           if optimize == 0 {
             generate_mux2(mux2_name.clone());
             write! (f, "{}({}, {}, hole_vars[\"{}\"])", 
                     mux2_name,
                     e1, e2, mux2_hole_name)
           }
-          else if optimize > 0{
+          else if optimize > 0 {
             let opcode : i32 = 
                 match HOLE_VALS.read().unwrap().get(&mux2_hole_name){
                    Some (num) => *num,
@@ -623,6 +680,8 @@ impl fmt::Display for Expr {
           panic!("Error: Optimization level is invalid");
         }
       },
+      Expr::Tern(e1, e2, e3) => 
+         write!(f, "match {} {{ \n    true => {},\n    false => {}\n}}\n", e1, e2, e3), 
     }
   }
 }
@@ -634,10 +693,10 @@ impl fmt::Display for Expr {
 fn update_func_count (key: String) {
 
   let mut func_count_ref = FUNC_COUNT.write().unwrap();
-  match func_count_ref.get(&key){
-    Some (&count) => func_count_ref.insert (key.clone(), 
-        count + 1),
-    _ => func_count_ref.insert (key.clone(), 0),
+
+  match func_count_ref.get(&key) {
+    Some(&count) => func_count_ref.insert(key.clone(), count + 1),
+    _ => func_count_ref.insert(key.clone(), 0),
   };
 }
 
@@ -664,7 +723,7 @@ fn find_var_name (variable: String) -> String {
                   format!("hole_vars[\"{}\"]", generate_hole_name (variable.clone()))
                 }
             },
-            _  => panic! ("Error: variable '{}' is undefined", variable),
+            _  => variable,
           }
         }, 
       }
@@ -706,7 +765,7 @@ fn generate_immediate (variable: &str) -> String{
 // Generates the hole name for a specific ALU helper function
 // or for a hole variable
 fn generate_hole_name (mut helper_name: String) -> String {
-        
+     
     update_func_count (helper_name.clone());
     let helper_num = FUNC_COUNT.read().unwrap() [&helper_name];
     let pipeline = *PIPELINE_STAGE.read().unwrap();
@@ -864,6 +923,48 @@ fn generate_mux2 (mux2_name: String)
   mux2_fn.push_str(&else_ret);
 
   HELPER_STRING.write().unwrap().push_str (&mux2_fn);
+}
+fn generate_mux4_optimized (mux4_name: &str,
+                            opcode: i32) {
+  let fn_header = 
+      format!("fn {}(op1: i32, op2: i32, op3: i32, op4: i32) -> i32{{\n", 
+          mux4_name);
+  let fn_body = 
+      match opcode {
+        0 => String::from("  op1\n}\n"),
+        1 => String::from("  op2\n}\n"),
+        2 => String::from("  op3\n}\n"),
+        _ => String::from("  op4\n}\n"),
+      };
+  let mux4_fn = format!("{}{}", 
+      fn_header,
+      fn_body);
+  HELPER_STRING.write().unwrap().push_str(&mux4_fn);
+}
+
+fn generate_mux4 (mux4_name: &str)
+{
+  let fn_header = 
+      format!("fn {}(op1: i32, op2: i32, op3: i32, op:i32, ctrl: i32) -> i32{{\n", 
+              mux4_name);
+  let if_ret = String::from
+      ("  if ctrl == 0 {\n    op1\n  }\n");
+  let else_if_ret_op2 = String::from
+      ("  else if ctrl == 1 {\n    op2\n  }\n");
+  let else_if_ret_op3 = String::from
+      ("  else if ctrl == 2 {\n    op3\n  }\n");
+
+  let else_ret = String::from
+      ("  else {\n  op4\n  }\n}\n");
+
+  let mux4_fn = format!("{}{}{}{}{}", 
+      fn_header, 
+      if_ret, 
+      else_if_ret_op2, 
+      else_if_ret_op3,
+      else_ret);
+
+  HELPER_STRING.write().unwrap().push_str (&mux4_fn);
 }
 
 fn generate_mux3_optimized (mux3_name: String,

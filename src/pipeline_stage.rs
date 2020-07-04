@@ -34,7 +34,7 @@ impl PipelineStage {
   // random order. Pass the mutated phv containers to their respective muxes.
   pub fn tick(&mut self, 
               t_initial_phv: Phv <i32>,
-              t_input_phv: Phv<i32>) -> (Phv<i32>,Phv<i32>){ 
+              t_input_phv: Phv<i32>) -> (Phv<i32>,Phv<i32>) { 
 
       let mut input_phv = t_input_phv.clone();
       let mut initial_phv = t_initial_phv.clone();
@@ -45,8 +45,7 @@ impl PipelineStage {
         let mut output_phv = 
             Phv { bubble: false, 
                   phv_containers: Vec::new(),
-                  state: Vec::new()};
-
+                  state: Vec::new() };
 
         let mut old_state: Vec <i32> = Vec::new();
         // List of new state variables for output mux
@@ -108,7 +107,7 @@ impl PipelineStage {
           //After being passed to alu, value is sent to an
           //output mux and put into a PHV
 
-          let result =  alu.run(&packet_fields).0[0];
+          let result = alu.run(&packet_fields).0[0];
           // State variables and returned value from stateless ALU
           let mut output_mux_fields: Vec <i32> = old_state.clone();
 

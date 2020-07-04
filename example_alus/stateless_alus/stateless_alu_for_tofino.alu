@@ -1,0 +1,54 @@
+// Max value of opcode is 10
+type : stateless
+state variables : {}
+hole variables : {opcode, immediate_operand}
+packet fields : {pkt_0, pkt_1}
+
+// TODO: Currently, we only support boolean operations and not bit-wise operations
+// for and, or, nand, etc.
+
+if (opcode == 0) {
+    // modify_field(mdata.result1, mdata.pkt_0);
+    return pkt_0;
+} elif (opcode == 1) {
+    // modify_field(mdata.result1, immediate_operand)
+    return immediate_operand;
+} elif (opcode == 2) {
+    // add(mdata.result1, mdata.pkt_0, mdata.pkt_1);
+    return pkt_0 + pkt_1;
+} elif (opcode == 3) {
+    // add(mdata.reseult1, mdata.pkt_0, immediate_operand);
+    return pkt_0 + immediate_operand;
+} elif (opcode == 4) {
+    // subtract(mdata.result1, mdata.pkt_1, mdata.pkt_0);
+    return pkt_1 - pkt_0;
+} elif (opcode == 5) {
+    // subtract(mdata.result1, mdata.pkt_0, immediate_operand);
+    return pkt_0 - immediate_operand;
+} elif (opcode == 6) {
+    // subtract(mdata.result1, immediate_operand, mdata.pkt_0);
+    return immediate_operand - pkt_0;
+} elif (opcode == 7) {
+    // max(mdata.result1, mdata.pkt_0, mdata.pkt_1);
+    return pkt_0 > pkt_1 ? pkt_0 : pkt_1;
+} elif (opcode == 8) {
+    // max(mdata.result1, mdata.pkt_0, immediate_operand);
+    return pkt_0 > immediate_operand ? pkt_0 : immediate_operand;
+} elif (opcode == 9) {
+    // min(mdata.result1, mdata.pkt_0, mdata.pkt_1);
+    return pkt_0 > pkt_1 ? pkt_1 : pkt_0;
+} else {
+    // min(mdata.result1, mdata.pkt_0, immediate_operand);
+    return pkt_0 > immediate_operand ? immediate_operand : pkt_0;
+}
+  // TODO: add back left shift and right shift
+  // elif (opcode == 14) {
+  // shift_left(mdata.result1, mdata.pkt_0, 1;
+  // TODO: Do we need to support bit shifts by variable amounts?
+  // i.e. pkt_0 << pkt_1
+  //  return pkt_0 << 1;
+  // } else {
+  // result1 = pkt_0 >> pkt_1(immediate value)
+  // TODO: Same here as above. variable bit shifts
+  // return pkt_0 >> 1;
+  // }

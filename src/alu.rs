@@ -26,7 +26,7 @@ impl ALU {
        
     pub fn new (function : Box <dyn Fn ( &mut Vec <i32>, 
                                 &Vec<PhvContainer<i32>>) 
-                                -> (Vec <i32>, Vec <i32>)>,
+                                -> (Vec <i32>, Vec<i32>, Vec <i32>)>,
             t_state_variables : Vec <i32>,
             t_input_muxes: Vec <InputMux>,
             t_output_mux : OutputMux,

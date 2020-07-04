@@ -12,6 +12,8 @@ pub fn test_expr() {
   assert!(alugrammar::ExprParser::new().parse("2 +20>=4*2").is_ok());
   assert!(alugrammar::ExprParser::new().parse("Mux3 (arith_op (2,4), 12, Opt(10<2) )").is_ok());
 
+  assert!(alugrammar::ExprParser::new().parse("pkt != 0 ? pkt_1 : pkt_2").is_ok());
+
 }
 #[test]
 pub fn test_stmt() {
@@ -44,8 +46,9 @@ pub fn test_stmt() {
 
   assert! (alugrammar::StmtParser::new().parse("x = 3;").is_ok());
 
+  assert! (alugrammar::StmtParser::new().parse("int old_state_0 = state_0;").is_ok());
+  assert!(alugrammar::StmtParser::new().parse("return Mux2(old_state_0, state_0);").is_ok());
   assert! (alugrammar::StmtParser::new().parse("state_0 = 9;").is_ok());
-  assert! (alugrammar::StmtParser::new().parse("state_0 = pkt_2 + Opt(pkt_1);").is_ok());
 
 }
 #[test]
@@ -165,7 +168,7 @@ pub fn test_stateless_alu ()
   let alu = fs::read_to_string("../example_alus/stateless_alus/stateless_alu.alu")
     .expect("Something went wrong reading the file");
 
-  assert! (alugrammar::AluParser::new().parse(&alu).is_ok());
+  assert!(alugrammar::AluParser::new().parse(&alu).is_ok());
   // _result not used
   let _result : Box <rust_code_generator::Alu> = match alugrammar::AluParser::new().parse(&alu){
     Ok (s) => s,
@@ -294,7 +297,7 @@ pub fn test_ast ()
 
   assert! 
   (match *_result {
-    rust_code_generator::Alu::Program (opt_header, header, stmt) => {
+    rust_code_generator::Alu::Program (opt_header, header, stmts) => {
       (match opt_header {
         // There is no OptHeader in this spec
         Some (_) => false,
@@ -318,13 +321,13 @@ pub fn test_ast ()
             container_vec[1] == "pkt_1"
         },
       }) &&
-      (match *stmt {
+      ( match &*stmts[0] {
         rust_code_generator::Stmt::If (expr_if, 
                        stmt_if, 
                        stmt_elif, 
                        stmt_else)  => 
         {
-          (match *expr_if {
+          (match &**expr_if {
             rust_code_generator::Expr::Op (e1, op, e2) => 
                 check_comparison (&*e1, &op, &*e2),
             _                          => false,
