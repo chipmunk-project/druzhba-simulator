@@ -10,6 +10,7 @@ def run_dgen_unoptimized (args):
                     'dgen_bin'])
 
     with open (os.devnull, 'w') as FNULL:
+        output = None
         if args[6] == '':
             output = subprocess.run(['./dgen_bin',
                  args[0],  # Program name
@@ -20,8 +21,6 @@ def run_dgen_unoptimized (args):
                  args[5],  # Stateful ALUs per stage
                  '-o prog_to_run.rs',  # Output prog_to_run
                  ], stderr=FNULL)
-
-            code = output.check_returncode()
 
         else:
             output = subprocess.run(['./dgen_bin',
@@ -35,15 +34,17 @@ def run_dgen_unoptimized (args):
                  args[6],  # Constant vec
                  '-o prog_to_run.rs',  # Output prog_to_run
                  ],  stderr=FNULL)
-            code = output.check_returncode()
     subprocess.run(['rm',
                     'dgen_bin'])
+
+    output.check_returncode()
     subprocess.run(['mv',
                     'prog_to_run.rs',
                     'src'])
 
 def run_dsim(args):
 
+    output = None
     with open (os.devnull, 'w') as FNULL:
         output = subprocess.run(['cargo',
              'run',
@@ -59,10 +60,12 @@ def run_dsim(args):
              '-p',
              args[12]], stderr=FNULL)
         output.check_returncode()
+
 def run_dgen_optimized (args):
     subprocess.run(['cp',
              'dgen/target/debug/dgen',
              'dgen_bin'])
+    output = None
     with open (os.devnull, 'w') as FNULL:
         if args[6] == '':
             output = subprocess.run(['./dgen_bin',
@@ -77,7 +80,6 @@ def run_dgen_optimized (args):
                   args[7],  # Hole configurations
                  ('-O' + args[10]),  # Optimization level
                  ], stderr=FNULL)
-            code = output.check_returncode()
         else: 
             output = subprocess.run(['./dgen_bin',
                 args[0],  # Program name
@@ -93,9 +95,9 @@ def run_dgen_optimized (args):
                  args[7],  # Hole configurations
                 ('-O' + args[10]),  # Optimization level
                 ], stderr=FNULL)
-            code = output.check_returncode()
     subprocess.run(['rm',
         'dgen_bin'])
+    output.check_returncode()
     subprocess.run(['mv',
         'prog_to_run.rs',
         'src'])
@@ -105,6 +107,7 @@ def rerun_dsim (args):
     subprocess.run(['cp',
          'target/debug/druzhba',
          'dsim_bin'])
+    output = None
     with open(os.devnull, 'w') as FNULL:
         output = subprocess.run(['./dsim_bin',
              '-g',
@@ -117,9 +120,10 @@ def rerun_dsim (args):
              args[11],
              '-p',
              args[12]], stderr=FNULL)
-        output.check_returncode()
     subprocess.run(['rm',
         'dsim_bin'])
+
+    output.check_returncode()
 
 def main ():
     argv = sys.argv
