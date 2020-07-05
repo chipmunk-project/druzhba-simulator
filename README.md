@@ -2,6 +2,9 @@
  
 # `Druzhba`
 
+NOTE: This branch is has been modified to fit the needs of the new Chipmunk additions and is still under construction. This README is outdated, please refer to the running_new_experiments file for examples. Optimizations are currently unavailable.
+
+
 # Overview
 
 Druzhba is a hardware switch simulator for testing compilers targeting programmable switches.
@@ -26,9 +29,6 @@ pipeline to be simulated and ```dsim``` uses this file to model the pipeline's f
 
 5. You're good to go! 
 
-Simple example:
-
-    python3 druzhba_run.py simple example_alus/stateful_alus/raw.alu example_alus/stateless_alus/stateless_alu.alu 2 2 1  hole_configurations/simple_raw_stateless_alu_2_2_hole_cfgs.txt 
 
 # Usage
 

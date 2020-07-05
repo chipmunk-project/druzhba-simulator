@@ -11,13 +11,13 @@ RCP
 
     python3 druzhba_run.py rcp exaple_alus/stateful_alus/pred_raw.alu example_alus/stateless_alus/stateless_alu.alu 4 5 3 sigcomm_configurations/rcp_pred_raw_statless_alu_4_5 -c "0,1,2,3,5,6,42,43,4,7,8,10,9,301,300" -g 2 -t 10 -p "{4, 1}"
 
-Blue increase
+Blue increase (Note: this was run using a spec of pkt_1 = pkt_0 - 1)
 
-    python3 druzhba_run.py example_alus/stateful_alus/pred_raw.alu example_alus/stateful_alus/stateful_alu_arith.alu 4 2 2 sigcomm_configurations/blue_increase_pred_raw_stateless_alu_arith_4_2 -c 11,21,10,12,0,3,1,2,10,2,1" -g 2 -t 5
+    python3 druzhba_run.py blue_increase example_alus/stateful_alus/pred_raw.alu example_alus/stateless_alus/stateless_alu_arith.alu 4 2 2 sigcomm_configurations/blue_increase_pred_raw_stateless_alu_arith_4_2 -c "11,21,10,12,0,3,1,2" -g 2 -t 5
 
 Conga
 
-    python3 druzhba_run.py conga eample_alus/stateful_alus/pair.alu example_alus/stateless_alus/stateless_alu.alu 1 5 1  sigcomm_configurations/conga_pair_stateless_alu_1_5 -c "0,1,2,3" -g 5 -t 4 -s "{{24, 4}}" -p "{2,32,11,29,4}"
+    python3 druzhba_run.py conga example_alus/stateful_alus/pair.alu example_alus/stateless_alus/stateless_alu.alu 1 5 1  sigcomm_configurations/conga_pair_stateless_alu_1_5 -c "0,1,2,3" -g 5 -t 4 -s "{{24, 4}}" -p "{2,32,11,29,4}"
 
 Snap heavy hitter
 
