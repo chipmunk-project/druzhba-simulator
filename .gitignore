@@ -5,6 +5,7 @@ target
 .DS_STORE
 *.swp
 dgen_bin
+dsim_bin
 benches/*optimized_1.rs
 benches/*optimized_2.rs
 benches/*unoptimized.rs

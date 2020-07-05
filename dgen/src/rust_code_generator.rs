@@ -942,7 +942,7 @@ fn generate_mux4_optimized (mux4_name: &str,
 fn generate_mux4 (mux4_name: &str)
 {
   let fn_header = 
-      format!("fn {}(op1: i32, op2: i32, op3: i32, op:i32, ctrl: i32) -> i32{{\n", 
+      format!("fn {}(op1: i32, op2: i32, op3: i32, op4: i32, ctrl: i32) -> i32{{\n", 
               mux4_name);
   let if_ret = String::from
       ("  if ctrl == 0 {\n    op1\n  }\n");
