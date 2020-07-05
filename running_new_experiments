@@ -21,6 +21,6 @@ Conga
 
 Snap heavy hitter
 
-    python3 druzhba_run.py snap_heavy_hitter example_alus/stateful_alus/pair.alu example_alus/stateless_alus/stateless_alu.alu 1 1 1 sigcomm_configurations/snap_heavy_hitter_pair_stateless_1_1 -g 1 -c "0,1,2,3,998,999,1000,4" -t 505 -s "{{0, 500}}"
+    python3 druzhba_run.py snap_heavy_hitter example_alus/stateful_alus/pair.alu example_alus/stateless_alus/stateless_alu.alu 1 1 1 sigcomm_configurations/snap_heavy_hitter_pair_stateless_alu_1_1 -g 1 -c "0,1,2,3,998,999,1000,4" -t 505 -s "{{0, 500}}"
 
 
