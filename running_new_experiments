@@ -5,7 +5,7 @@ Simple
 
 Marple new flow
 
-    python3 druzhba_run.py marple_new_flow_canonicalizer_equivalent_0 example_alus/stateful_alus/pred_raw.alu example_alus/stateless_alus/stateless_alu.alu 2 2 1 sigcomm_configurations/marple_new_flow_canonicalizer_equivalent_0 -t 2 -s "{{4}}" -p "{10}" -c "0,1,2,3"
+    python3 druzhba_run.py marple_new_flow_canonicalizer_equivalent_0 example_alus/stateful_alus/pred_raw.alu example_alus/stateless_alus/stateless_alu.alu 2 2 1 sigcomm_configurations/marple_new_flow_canonicalizer_equivalent_0 -t 2 -s "{{4}}" -p "{10}" -c "0,1,2,3" -g 1
 
 RCP
 
