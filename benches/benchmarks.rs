@@ -747,7 +747,7 @@ fn bench_spam_detection_optimized_2(b : &mut Bencher) {
 
 
 // Spec benchmarks (comment out for now so Appveyor doesn't timeout
-
+/*
 #[bench]
 fn bench_blue_increase_spec (b : &mut Bencher)
 {
@@ -834,4 +834,4 @@ fn bench_rcp_spec  (b : &mut Bencher){
     }
   });
 }
-
+*/

@@ -1,5 +1,4 @@
 use std::fs;
-use std::collections::HashMap;
 use alu_parsing_utils::AluParsingUtils;
 use alugrammar::*;
 use rust_code_generator::*;
