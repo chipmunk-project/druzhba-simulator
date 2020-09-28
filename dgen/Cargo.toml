@@ -1,7 +1,7 @@
 [package]
 name = "dgen"
 version = "0.1.0"
-authors = ["Aatish Varma", "Jiayang Wang", "Anirudh Sivaraman", "Mike Wong"]
+authors = ["Mike Wong", "Aatish Varma", "Anirudh Sivaraman"]
 build = "build.rs" #LALRPOP preprocessing
 
 
@@ -10,9 +10,8 @@ lalrpop-util = "0.17.1"
 regex = "0.2"
 rand = "0.3.0"
 lazy_static = "1.3.0"
+clap = "1.0.0"
 
-[dependencies.clap]
-git = "https://github.com/clap-rs/clap.git"
 
 [build-dependencies]
 rand = "0.3.0"
