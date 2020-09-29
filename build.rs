@@ -13,37 +13,37 @@ fn main() {
   let destination = Path::new(&out_dir).join("test_with_chipmunk.rs");
   let mut test_file = File::create(&destination).unwrap();
 
-  let test_case_names : Vec <String> = test_names();
-  let dgen_data : Vec <Vec <String> > = test_configurations();
+  let test_case_names: Vec <String> = test_names();
+  let dgen_data: Vec <Vec <String> > = test_configurations();
 
    Command::new("mkdir")
            .arg("src/tests")
            .output()
            .expect("Could not create tests directory");
 
-  write_mod_file (&test_case_names);
+  write_mod_file(&test_case_names);
   // Runs dgen to produce all prog_to_run files
-  run_dgen (&test_case_names, &dgen_data);
+  run_dgen(&test_case_names, &dgen_data);
    // write test file header, put `use`, `const` etc there
   write_header(&mut test_file, &test_case_names);
   let test_data_directory = read_dir("src/tests/").unwrap();
-  let mut index : usize = 0;
+  let mut index: usize = 0;
   // Generate unit test for every prog_to_run file to test
   // and put it in test_with_chipmunk.rs
   for dgen_output_file in test_data_directory {
       let file_name = match dgen_output_file {
         Ok (f) => format!("{:?}", f.file_name()),
-        Err (_)      => panic!("Unable to unwrap test file"),
+        Err (_) => panic!("Unable to unwrap test file"),
       };
-      if file_name.contains ("mod.rs") || 
+      if file_name.contains("mod.rs") || 
          index >= dgen_data.len() ||
-         index >= test_case_names.len(){
+         index >= test_case_names.len() {
         continue;
       }
-    write_test(&mut test_file, 
-               &dgen_data[index],
-               test_case_names[index].clone());
-    index+=1;
+      write_test(&mut test_file, 
+                 &dgen_data[index],
+                 test_case_names[index].clone());
+      index += 1;
   }
   // Copies benchmark prog_to_run files to benches dir
   copy_benchmark_files();
@@ -147,8 +147,8 @@ copy_benchmark_file("src/tests/learn_filter_equivalent_1_canonicalizer_equivalen
 // Copies a single benchmark from src directory to destination
 // and adds "extern crate druzhba" at the top to be used for
 // benchmarks
-fn copy_benchmark_file (source : &str,
-                        destination : &str) {
+fn copy_benchmark_file (source: &str,
+                        destination: &str) {
    
    Command::new("cp")
            .arg(source)
@@ -156,7 +156,7 @@ fn copy_benchmark_file (source : &str,
            .output()
            .expect(&format!("Could not copy {} to benches", 
                               source));
-   let contents : String = 
+   let contents: String = 
        fs::read_to_string(destination)
          .expect(&format!("Could not open {} for benchmarks", 
                             destination));
@@ -171,8 +171,8 @@ fn copy_benchmark_file (source : &str,
 
 // Runs dgen multiple times to produce all of the prog_to_run.rs
 // files needed for the tests
-fn run_dgen (test_case_names : &Vec<String>,
-             dgen_args : &Vec <Vec<String>>)
+fn run_dgen (test_case_names: &Vec<String>,
+             dgen_args: &Vec <Vec<String>>)
 {
   Command::new("cp")
            .arg("dgen/target/debug/dgen")
@@ -184,7 +184,7 @@ fn run_dgen (test_case_names : &Vec<String>,
            .arg("dgen_bin")
            .output()
            .expect("Adding execution permissions to dgen_bin failed");
-  let mut index : usize = 0;
+  let mut index: usize = 0;
   // Initializes a prog_to_run just so that Druzhba can compile
   for arg in dgen_args.iter(){
     // Optimization level 1
@@ -267,9 +267,9 @@ fn run_dgen (test_case_names : &Vec<String>,
            .expect("Removing dgen binary failed");
 }
 
-fn write_mod_file (test_case_names : &Vec<String>){
+fn write_mod_file (test_case_names: &Vec<String>){
 
-  let mut declaration_list : String = String::from("");
+  let mut declaration_list: String = String::from("");
   for n in test_case_names.iter(){
     declaration_list.push_str (&format!("pub mod {};\n",n));
 
@@ -283,10 +283,13 @@ fn write_mod_file (test_case_names : &Vec<String>){
 }
 // Fills out the contents of the test file
 fn write_test(test_file: &mut File, 
-              dgen_data : &Vec <String>,
-              test_name : String) {
-
-
+              dgen_data: &Vec <String>,
+              test_name: String) {
+    // Don't want to test stateful_fw for now since the machine
+    // code is invalid but we still want them for the benchmarks 
+    if test_name.contains("stateful_fw") {
+        return
+    }
     // Optimization level 1
     write!(test_file, include_str!("./test/test_template_optimized"),
                       name = format!("test_{}_optimized_1",test_name),
@@ -324,9 +327,9 @@ fn write_test(test_file: &mut File,
 
 // Writes all of the imports to the top of the test file
 fn write_header(test_file: &mut File, 
-                test_case_names : &Vec<String>) {
+                test_case_names: &Vec<String>) {
 
-  let mut test_case_imports : String = String::from("");
+  let mut test_case_imports: String = String::from("");
   for n in test_case_names.iter(){
     test_case_imports.push_str (&format!("use tests::{}_optimized_1;\n", n));
 
@@ -334,7 +337,7 @@ fn write_header(test_file: &mut File,
 
     test_case_imports.push_str (&format!("use tests::{};\n", n));
   }
-  let full_import_list : String = format!("extern crate druzhba;\n\nuse druzhba::pipeline::Pipeline;\nuse druzhba::phv::Phv;\nuse druzhba::phv_container::PhvContainer;\nuse rand::Rng;\nuse std::fs;\nuse std::collections::HashMap;\n{}", test_case_imports);
+  let full_import_list: String = format!("extern crate druzhba;\n\nuse druzhba::pipeline::Pipeline;\nuse druzhba::phv::Phv;\nuse druzhba::phv_container::PhvContainer;\nuse rand::Rng;\nuse std::fs;\nuse std::collections::HashMap;\n{}", test_case_imports);
 
 
   write!(test_file, "{}", full_import_list).expect("Error writing to test_with_chimunk.rs header");
@@ -428,8 +431,8 @@ fn test_names () -> Vec <String> {
   "spam_detection_equivalent_3_canonicalizer_equivalent_1_pair_stateless_alu_1_1".to_string(),
   "spam_detection_equivalent_4_canonicalizer_equivalent_1_pair_stateless_alu_1_1".to_string(),
   "spam_detection_equivalent_5_canonicalizer_equivalent_1_pair_stateless_alu_1_1".to_string(),
-//  "stateful_fw_equivalent_3_canonicalizer_equivalent_0_pred_raw_stateless_alu_4_5".to_string(),
-//  "stateful_fw_equivalent_4_canonicalizer_equivalent_0_pred_raw_stateless_alu_4_5".to_string(),
+  "stateful_fw_equivalent_3_canonicalizer_equivalent_0_pred_raw_stateless_alu_4_5".to_string(),
+  "stateful_fw_equivalent_4_canonicalizer_equivalent_0_pred_raw_stateless_alu_4_5".to_string(),
      ]
 
 }
@@ -1288,7 +1291,7 @@ fn test_configurations () -> Vec <Vec <String> > {
           "hole_configurations/spam_detection_equivalent_5_canonicalizer_equivalent_1_pair_stateless_alu_1_1_hole_cfgs.txt".to_string(), // Hole config file
           "spam_detection".to_string(),
         ],
-/*
+
     vec! ["stateful_fw_equivalent_3_canonicalizer_equivalent_0".to_string(),
           "example_alus/stateful_alus/pred_raw.alu".to_string(),
           "example_alus/stateless_alus/stateless_alu.alu".to_string(),
@@ -1315,8 +1318,6 @@ fn test_configurations () -> Vec <Vec <String> > {
           "hole_configurations/stateful_fw_equivalent_4_canonicalizer_equivalent_0_pred_raw_stateless_alu_4_5_hole_cfgs.txt".to_string(), // Hole config file
           "stateful_fw".to_string(),
         ],
-*/
-
 
   ]
 }
