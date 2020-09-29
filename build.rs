@@ -1283,7 +1283,7 @@ fn test_configurations () -> Vec <Vec <String> > {
           "1".to_string(),
           "0, 1, 2, 3, 4, 14, 723, 998, 999, 1000,1023".to_string(),
           "1".to_string(), // Num packets
-          "2".to_string(), // State vars
+          "2".to_string(), // State vars          
           "1".to_string(), // Stateful ALUs
           "hole_configurations/spam_detection_equivalent_5_canonicalizer_equivalent_1_pair_stateless_alu_1_1_hole_cfgs.txt".to_string(), // Hole config file
           "spam_detection".to_string(),
