@@ -67,7 +67,7 @@ fn phv_generator (num_phv_cons: i32) -> Phv <i32>{
     (0..num_phv_cons)
         .for_each( |_| {
          phv.add_container_to_phv(PhvContainer {
-             field_value: rand::thread_rng().gen_range(0,100),
+             field_value: rand::thread_rng().gen_range(0,10000),
         }); 
      });
            
@@ -108,7 +108,7 @@ fn create_phv (num_phv_cons: i32, phv_values: &Vec<i32>) -> Phv<i32> {
                 (phv_values.len()..num_phv_cons as usize)
                     .for_each(|_| {
                         phv.add_container_to_phv(PhvContainer {
-                            field_value: rand::thread_rng().gen_range(0,100),
+                            field_value: rand::thread_rng().gen_range(0,10000),
                         }); 
                     }); 
             }
@@ -209,7 +209,7 @@ fn execute_pipeline (num_phv_cons: i32,
 
     // For every tick create a new packet with the 
     // specified input fields set to random values from
-    // 0 to 100. Send packet through pipeline and 
+    // 0 to 10000. Send packet through pipeline and 
     // retrieve resulting packet.
     let mut input_phvs = Vec::new();
     let mut output_phvs = Vec::new();

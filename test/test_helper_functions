@@ -13,7 +13,7 @@ fn create_random_phvs (ticks : i32,
     let mut packet : Phv<i32> = Phv::new();
     for _j in 0..num_packets{{
         packet.add_container_to_phv(PhvContainer {{
-            field_value : rand::thread_rng().gen_range(0,100),
+            field_value : rand::thread_rng().gen_range(0,10000),
         }}); 
     }}
     for _j in num_packets..pipeline_width {{

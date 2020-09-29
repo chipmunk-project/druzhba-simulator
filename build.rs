@@ -96,13 +96,14 @@ fn copy_benchmark_files ()
                        "benches/snap_heavy_hitter_optimized_1.rs");  copy_benchmark_file("src/tests/snap_heavy_hitter_equivalent_1_canonicalizer_equivalent_1_pair_stateless_alu_1_1_optimized_2.rs",
                        "benches/snap_heavy_hitter_optimized_2.rs");
 
+    /*
    copy_benchmark_file("src/tests/stateful_fw_equivalent_3_canonicalizer_equivalent_0_pred_raw_stateless_alu_4_5.rs",
                        "benches/stateful_fw_unoptimized.rs");
    copy_benchmark_file("src/tests/stateful_fw_equivalent_3_canonicalizer_equivalent_0_pred_raw_stateless_alu_4_5_optimized_1.rs",
                        "benches/stateful_fw_optimized_1.rs");
    copy_benchmark_file("src/tests/stateful_fw_equivalent_3_canonicalizer_equivalent_0_pred_raw_stateless_alu_4_5_optimized_2.rs",
                        "benches/stateful_fw_optimized_2.rs");
-
+*/
 
    copy_benchmark_file("src/tests/flowlets_equivalent_1_canonicalizer_equivalent_0_pred_raw_stateless_alu_4_5.rs",
                        "benches/flowlets_unoptimized.rs");
@@ -427,8 +428,8 @@ fn test_names () -> Vec <String> {
   "spam_detection_equivalent_3_canonicalizer_equivalent_1_pair_stateless_alu_1_1".to_string(),
   "spam_detection_equivalent_4_canonicalizer_equivalent_1_pair_stateless_alu_1_1".to_string(),
   "spam_detection_equivalent_5_canonicalizer_equivalent_1_pair_stateless_alu_1_1".to_string(),
-  "stateful_fw_equivalent_3_canonicalizer_equivalent_0_pred_raw_stateless_alu_4_5".to_string(),
-  "stateful_fw_equivalent_4_canonicalizer_equivalent_0_pred_raw_stateless_alu_4_5".to_string(),
+//  "stateful_fw_equivalent_3_canonicalizer_equivalent_0_pred_raw_stateless_alu_4_5".to_string(),
+//  "stateful_fw_equivalent_4_canonicalizer_equivalent_0_pred_raw_stateless_alu_4_5".to_string(),
      ]
 
 }
@@ -1287,6 +1288,7 @@ fn test_configurations () -> Vec <Vec <String> > {
           "hole_configurations/spam_detection_equivalent_5_canonicalizer_equivalent_1_pair_stateless_alu_1_1_hole_cfgs.txt".to_string(), // Hole config file
           "spam_detection".to_string(),
         ],
+/*
     vec! ["stateful_fw_equivalent_3_canonicalizer_equivalent_0".to_string(),
           "example_alus/stateful_alus/pred_raw.alu".to_string(),
           "example_alus/stateless_alus/stateless_alu.alu".to_string(),
@@ -1313,7 +1315,7 @@ fn test_configurations () -> Vec <Vec <String> > {
           "hole_configurations/stateful_fw_equivalent_4_canonicalizer_equivalent_0_pred_raw_stateless_alu_4_5_hole_cfgs.txt".to_string(), // Hole config file
           "stateful_fw".to_string(),
         ],
-
+*/
 
 
   ]
