@@ -19,7 +19,8 @@ def run_dgen_unoptimized (args):
                  args[3],  # Pipeline depth
                  args[4],  # Pipeline width
                  args[5],  # Stateful ALUs per stage
-                 '-o prog_to_run.rs',  # Output prog_to_run
+                 '-o',
+                 'prog_to_run.rs',  # Output prog_to_run
                  ], stderr=FNULL)
 
         else:
@@ -32,7 +33,8 @@ def run_dgen_unoptimized (args):
                  args[5],  # Stateful ALUs per stage
                  '-c', 
                  args[6],  # Constant vec
-                 '-o prog_to_run.rs',  # Output prog_to_run
+                 '-o',
+                 'prog_to_run.rs',  # Output prog_to_run
                  ],  stderr=FNULL)
     subprocess.run(['rm',
                     'dgen_bin'])
@@ -75,10 +77,12 @@ def run_dgen_optimized (args):
                  args[3],  # Pipeline depth
                  args[4],  # Pipeline width
                  args[5],  # Stateful ALUs per stage
-                 '-o prog_to_run.rs',  # Output prog_to_run
+                 '-o',
+                 ' prog_to_run.rs',  # Output prog_to_run
                  '-i',
                   args[7],  # Hole configurations
-                 ('-O' + args[10]),  # Optimization level
+                 '-O',
+                 args[10],  # Optimization level
                  ], stderr=FNULL)
         else: 
             output = subprocess.run(['./dgen_bin',
@@ -90,10 +94,12 @@ def run_dgen_optimized (args):
                 args[5],  # Stateful ALUs per stage
                 '-c',
                 args[6],  # Constant vec
-                '-o prog_to_run.rs',  # Output prog_to_run
+                '-o',
+                'prog_to_run.rs',  # Output prog_to_run
                 '-i',
                  args[7],  # Hole configurations
-                ('-O' + args[10]),  # Optimization level
+                '-O',
+                 args[10],  # Optimization level
                 ], stderr=FNULL)
     subprocess.run(['rm',
         'dgen_bin'])

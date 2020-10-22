@@ -119,7 +119,7 @@ To execute ```dgen``` alone (note that this is within the ```dgen``` directory):
 Example:
 
     cd dgen
-    cargo run simple ../example_alus/stateful_alus/raw.alu ../example_alus/stateless_alus/stateless_alu.alu 2 2 1 -c 0,1,2,3 -i ../hole_configurations/simple_raw_stateless_alu_2_2_hole_cfgs.txt -O2 
+    cargo run simple ../example_alus/stateful_alus/raw.alu ../example_alus/stateless_alus/stateless_alu.alu 2 2 1 -c 0,1,2,3 -i ../hole_configurations/simple_raw_stateless_alu_2_2_hole_cfgs.txt -O 2 
     cd ..
 
 
@@ -221,4 +221,4 @@ RCP:
 marple_new_flow:
 
 
-    python3 druzhba_run.py marple_new_flow_equivalent_1_canonicalizer_equivalent_0 example_alus/stateful_alus/pred_raw.alu example_alus/stateless_alus/stateless_alu.alu 2 2 1 ../marple_new_flow_equivalent_1_canonicalizer_equivalent_0_pred_raw_stateless_alu_2_2_hole_cfgs.txt -t 10 -s "{{0}}" -p "{10}" -c "0,1,2,3"
+    python3 druzhba_run.py marple_new_flow_equivalent_1_canonicalizer_equivalent_0 example_alus/stateful_alus/pred_raw.alu example_alus/stateless_alus/stateless_alu.alu 2 2 1 hole_configurations/marple_new_flow_equivalent_1_canonicalizer_equivalent_0_pred_raw_stateless_alu_2_2_hole_cfgs.txt -t 10 -s "{{0}}" -p "{10}" -c "0,1,2,3"
