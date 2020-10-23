@@ -67,7 +67,7 @@ fn phv_generator (num_phv_cons: i32) -> Phv <i32>{
     (0..num_phv_cons)
         .for_each( |_| {
          phv.add_container_to_phv(PhvContainer {
-             field_value: rand::thread_rng().gen_range(0,10000),
+             field_value: rand::thread_rng().gen_range(0,100),
         }); 
      });
            
