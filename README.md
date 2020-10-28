@@ -21,11 +21,7 @@ pipeline to be simulated and ```dsim``` uses this file to model the pipeline's f
 
 3. Clone this repo. 
 
-4. Ensure ```build_dgen.sh``` is executable:
-    
-    ```chmod +x build_dgen.sh```
-
-5. You're good to go! 
+4. You're good to go! 
 
 Simple example:
 
