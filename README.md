@@ -128,10 +128,15 @@ Example:
     cargo run simple ../example_alus/stateful_alus/raw.alu ../example_alus/stateless_alus/stateless_alu.alu 2 2 1 -c 0,1,2,3 -i ../hole_configurations/simple_raw_stateless_alu_2_2_hole_cfgs.txt -O 2 
     cd ..
 
+```dgen``` reqeires a hardware specification to to generate the pipeline description. 
+spec_name is the name of the program to be run (this is the name used in the machine code value names). 
+stateful_alu and stateless_alu are the .alu files. 
+pipeline_depth is the number of pipeline stages and pipeline_width is the number of stateless ALUs per stage. num_stateful_alus is the number of stateful ALUs per stage.
 
-The output will be a Rust file containing the pipeline description to be simulated. Use the ```-o``` option to specify the output file name and location. 
+
+The output of ```dgen``` will be a Rust file containing the pipeline description to be simulated. Use the ```-o``` option to specify the output file name and location. 
 To compile with ```dsim```, provide the argument ```-o ../src/prog_to_run.rs```. If this is not provided, the output file must be renamed 
-to prog_to_run.rs and move it into dsim's src directory. The ```-c``` argument is specific to Chipmunk; when using ```-c```, 
+to prog_to_run.rs and move it into ```dsim's``` src directory. The ```-c``` argument is specific to the Chipmunk compiler; when using ```-c```, 
 the immediate operand machine code values are instead treated as indices into the vector provided. ```-i``` is the file that the machine
 code values reside in. ```-O``` is for optimizations; ```-O 1``` uses sprase conditional constant propagation and ```-O 2``` uses sparse
 conditional constant propagation + function inlining.
@@ -163,7 +168,10 @@ Example:
     cargo run -- -g 1 -t 20 -s "{{2}}" 2>/dev/null
 
 
-Machine code file can be given to ```dsim``` instead of ```dgen``` if more flexibility is desired by not having to rerun ```dgen``` and recompile ```dsim``` but optimizations would not be able to be used.
+Machine code file can be given to ```dsim``` instead of ```dgen``` if more flexibility is desired by not having to rerun ```dgen``` and recompile ```dsim``` but optimizations would not be able to be used. 
+
+All of ```dgen's``` arguments are optional. Note leaving out the ```-g``` option can lead to unexpected behavior depending on how the machine code was generated.
+For instance, many of Chipmunk's generated programs require a specific value for ```-g``` for the intended behavior to be performed.
 
 The ```-s``` option is a 2D-vector of the initial state variables to be used; the format is "{ {s_1, s_2, ...}, {s_1, s_2, ...}, ... }". The ```-i``` option is the file that the machine code resides in; this is required when machine code values aren't provided to ```dgen```.
 The ```-g``` option tells the traffic generator how many PHV containers to be randomly generated; the remaining PHV containers are initialized to 0. 
@@ -172,9 +180,7 @@ At the moment, if this option is selected, all PHVs entering the pipeline will h
 
 When analyzing state variables, note that each state_group corresponds to the storage within a single stateful ALU in a stage. There should be as many state groups as there are salu_config machine code values set and there should be as many state variables per state group vector as there are state variable operands the stateful ALU uses. For instance, although the example uses 1 stateful ALU per stage for 2 stages, only 1 stateful ALU is set using salu_config, thus there is 1 state group specified. And raw.alu uses only 1 state variable so the state group size is 1 element. 
 
-The above example directs STDERR to null device due to compiler warnings from test generated ```dgen``` files. Many of these warnings 
-are either unavoidable or helpful for readibilty. While some can be fixed we leave that for future work. 
-of the task. 
+The above example directs STDERR to null device due to compiler warnings from test generated ```dgen``` files. Many of these warnings are from the generated files from ```dgen``` for the units and are mostly unavoidable or helpful for readibilty. While some can be fixed we leave that for future work. 
 
 # Test
 
