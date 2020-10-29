@@ -214,6 +214,8 @@ In this section, a few examples are provided for running different programs with
 simple is a small program used primarily for testing that is not in the paper. 
 blue_increase, marple_new_flow, marple_tcp_nmo, snap_heavy_hitter, conga, flowlets, and RCP are 7 of the 12 programs
 found in Table 1 of our paper.
+
+
 simple:
 
     python3 druzhba_run.py simple example_alus/stateful_alus/raw.alu example_alus/stateless_alus/stateless_alu.alu 2 2 1  hole_configurations/simple_raw_stateless_alu_2_2_hole_cfgs.txt -c "0,1,2,3" -g 1 -t 30 -s "{{0}}"
