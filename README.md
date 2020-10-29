@@ -81,11 +81,11 @@ Example:
     python3 druzhba_run.py simple example_alus/stateful_alus/raw.alu example_alus/stateless_alus/stateless_alu.alu 2 2 1  hole_configurations/simple_raw_stateless_alu_2_2_hole_cfgs.txt -c "0,1,2,3" -g 1 -s "{{28}}"
 
 
-More examples can be found at the bottom. Note: the -n recompile flag should be used if you have already compiled ```dsim``` previously and would like to rerun it without recompiling.
+More examples can be found at the bottom. Note: the ```-n``` recompile flag should be used if you have already compiled ```dsim``` previously and would like to rerun it without recompiling.
 This is especially useful if machine code pairs are to be swapped for unoptimized Druzhba executions 
 or if the program is to be run with a different number of ticks. 
 If the recompile flag is turned
-on for a new pipeline configuration (e.g. different stateful ALU or pipeline dimensions) this will not work; ```dgen``` will need to be run again
+on for a new pipeline configuration (e.g., different stateful ALU or pipeline dimensions) this will not work; ```dgen``` will need to be run again
 and the resulting file needs to be compiled with ```dsim```. 
 
 Further information about the options can be found in the next section.
