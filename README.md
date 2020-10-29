@@ -170,12 +170,12 @@ Example:
 
 Machine code file can be given to ```dsim``` instead of ```dgen``` if more flexibility is desired by not having to rerun ```dgen``` and recompile ```dsim``` but optimizations would not be able to be used. 
 
-All of ```dgen's``` arguments are optional. Note leaving out the ```-g``` option can lead to unexpected behavior depending on how the machine code was generated.
-For instance, many of Chipmunk's generated programs require a specific value for ```-g``` for the intended behavior to be performed.
+All of ```dgen's``` arguments are optional. Note that leaving out the ```-g``` option can lead to unexpected behavior depending on how the machine code was generated.
+For instance, many of Chipmunk's generated programs require a specific value for ```-g``` for the intended behavior to be performed. Also note that ```dsim``` will fail to execute if no machine code pairs are provided to both ```dgen``` and ```dsim```.
 
-The ```-s``` option is a 2D-vector of the initial state variables to be used; the format is "{ {s_1, s_2, ...}, {s_1, s_2, ...}, ... }". The ```-i``` option is the file that the machine code resides in; this is required when machine code values aren't provided to ```dgen```.
+The ```-s``` option is a 2D-vector of the initial state variables to be used; the format is ```"{ {s_1, s_2, ...}, {s_1, s_2, ...}, ... }"```. The ```-i``` option is the file that the machine code resides in; this is required when machine code values aren't provided to ```dgen```.
 The ```-g``` option tells the traffic generator how many PHV containers to be randomly generated; the remaining PHV containers are initialized to 0. 
-If this option is not used, the traffic generator will initialize all PHV containers by default with random values. The ```-p``` option is used to initialize PHV container values. 
+If this option is not used, the traffic generator will initialize all PHV containers by default with random values. The ```-p``` option is used to initialize PHV container values; the format is ```"{p_1, p_2, ... }"```.
 At the moment, if this option is selected, all PHVs entering the pipeline will have the same values and aren't randomly initialized. ```-t``` denotes the number of ticks; at every tick, a new PHV is generated and enters the pipeline.
 
 When analyzing state variables, note that each state_group corresponds to the storage within a single stateful ALU in a stage. There should be as many state groups as there are salu_config machine code values set and there should be as many state variables per state group vector as there are state variable operands the stateful ALU uses. For instance, although the example uses 1 stateful ALU per stage for 2 stages, only 1 stateful ALU is set using salu_config, thus there is 1 state group specified. And raw.alu uses only 1 state variable so the state group size is 1 element. 
