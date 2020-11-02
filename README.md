@@ -194,7 +194,7 @@ To run tests:
 
     ./build_dgen.sh && cargo test
 
-The benchmarks mentioned in our [paper] (https://michaeldwong.github.io/papers/druzhba_conext20.pdf) for measuring the simulation performance can also be run:
+The benchmarks mentioned in our [paper](https://michaeldwong.github.io/papers/druzhba_conext20.pdf) for measuring the simulation performance can also be run:
 
     ./build_dgen.sh && cargo bench
 
