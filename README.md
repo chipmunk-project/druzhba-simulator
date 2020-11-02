@@ -11,6 +11,8 @@ the abilities for these compilers to map programs to switch hardware primitives.
 simulation through 2 components: ```dgen``` and ```dsim```. ```dgen``` generates a Rust file corresponding to the
 pipeline to be simulated and ```dsim``` uses this file to model the pipeline's feedforward behavior.
 
+For more information, please read our [paper](https://michaeldwong.github.io/papers/druzhba_conext20.pdf).
+
 # Installation
 
 1. Install ```rust```. For Unix-like OS run ```curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh```. If further help is needed, please see https://www.rust-lang.org/tools/install.
