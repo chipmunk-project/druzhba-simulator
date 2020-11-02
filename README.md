@@ -194,11 +194,11 @@ To run tests:
 
     ./build_dgen.sh && cargo test
 
-To run benchmarks:
+The benchmarks mentioned in our [paper] (https://michaeldwong.github.io/papers/druzhba_conext20.pdf) for measuring the simulation performance can also be run:
 
     ./build_dgen.sh && cargo bench
 
-Similarly, the ```dgen``` tests ensure that the alu grammar
+Similarly, the ```dgen``` tests ensure that the ALU grammar
 is being parsed correctly and that the ast is being
 generated properly. 
 
